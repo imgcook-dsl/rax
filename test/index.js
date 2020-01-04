@@ -7,6 +7,7 @@ const prettier = require('prettier');
 const { NodeVM } = require('vm2');
 const _ = require('lodash');
 const data = require('./data');
+const helper = require('@imgcook/dsl-helper');
 
 const vm = new NodeVM({
   console: 'inherit',
@@ -26,11 +27,7 @@ co(function*() {
       width: 750,
       viewportWidth: 375
     },
-    utils: {
-      print: function(value) {
-        console.log(value);
-      }
-    }
+    helper,
   });
 
   if (renderInfo.noTemplate) {
