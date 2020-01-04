@@ -2,6 +2,15 @@ const isExpression = (value) => {
   return /^\{\{.*\}\}$/.test(value);
 }
 
+// eg: hello_world => HelloWorld
+const line2Hump = (str) => {
+  str = str.replace(/[_|-](\w)/g, (all, letter) => {
+    return letter.toUpperCase();
+  });
+  str = str.charAt(0).toUpperCase() + str.slice(1);
+  return str;
+}
+
 const toString = (value) => {
   if ({}.toString.call(value) === '[object Function]') {
     return value.toString();
@@ -160,7 +169,7 @@ const parseLoop = (loop, loopArg, render, states) => {
   );
   return {
     hookState,
-    parseLoopValue: `${stateValue}.map((${loopArgItem}, ${loopArgIndex}) => {
+    value: `${stateValue}.map((${loopArgItem}, ${loopArgIndex}) => {
       return (${render});
     })`
   };
@@ -230,6 +239,7 @@ const parseDataSource = (data, imports) => {
 module.exports = {
   isExpression,
   toString,
+  line2Hump,
   toUpperCaseStart,
   parseStyle,
   parseDataSource,

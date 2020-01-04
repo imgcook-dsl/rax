@@ -5,7 +5,8 @@ import jsonp from 'fetch-jsonp';
 import View from 'rax-view';
 import Image from 'rax-image';
 import Text from 'rax-text';
-import styles from './style.css';
+
+import styles from './index.css';
 
 export default function Page() {
   const [data, setData] = useState([
@@ -55,5 +56,55 @@ export default function Page() {
         console.log('error', e);
       });
   }
-  return <View style={styles.box}>{undefined}</View>;
+  return (
+    <View style={styles.box}>
+      {data.map((item, index) => {
+        return (
+          <View
+            key={index}
+            onClick={e => {
+              window.open(item.url, '_blank');
+            }}
+            data-url={item.url}
+          >
+            <View style={styles.bd}>
+              <Image
+                style={styles.layer}
+                source={{ uri: 'https://img.alicdn.com/tfs/TB1bLoWoYH1gK0jSZFwXXc7aXXa-684-684.png' }}
+              />
+              <Image style={styles.bg} source={{ uri: item.coverImage }} />
+              <View style={styles.wrap}>
+                <Image
+                  style={styles.riverdinwei}
+                  source={{ uri: 'https://img.alicdn.com/tfs/TB1mtZRoVT7gK0jSZFpXXaTkpXa-28-36.png' }}
+                />
+                <Text style={styles.distance}>距离500m</Text>
+              </View>
+            </View>
+            <View style={styles.main}>
+              <Text style={styles.title}>{item.title}</Text>
+            </View>
+            <View style={styles.ft}>
+              <View style={styles.block}>
+                <Image
+                  style={styles.xianjin}
+                  source={{ uri: 'https://img.alicdn.com/tfs/TB1OvsYoW61gK0jSZFlXXXDKFXa-60-60.png' }}
+                />
+                <Text style={styles.fashionHome}>{item.user.userName}</Text>
+              </View>
+              {isReadCountShow(item.readCount) && (
+                <View style={styles.group}>
+                  <Image
+                    style={styles.favorite}
+                    source={{ uri: 'https://img.alicdn.com/tfs/TB1arwYo7T2gK0jSZFkXXcIQFXa-46-44.png' }}
+                  />
+                  <Text style={styles.num}>{item.readCount}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
 }
