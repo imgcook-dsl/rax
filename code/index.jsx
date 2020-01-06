@@ -25,11 +25,15 @@ export default function Page() {
       url: 'https://www.imgcook.com/docs'
     }
   ]);
+  const hasCalled = useRef(false);
   useEffect(() => {
-    fetch_example();
-    jsonp_example();
+    if (!hasCalled.current) {
+      hasCalled.current = true;
+      fetch_example();
+      jsonp_example();
 
-    console.log('super props');
+      console.log('super props');
+    }
   });
   function isReadCountShow(readCount) {
     return readCount > 300;

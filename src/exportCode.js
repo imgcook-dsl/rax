@@ -208,8 +208,12 @@ function exportMod(schema, option) {
     ${utils.join('\n')}
     export default function Mod() {
       ${useState.join('\n')}
+      const hasCalled = useRef(false);
       useEffect(() => {
-        ${init.join('\n')}
+        if (!hasCalled.current) {
+          hasCalled.current = true;
+          ${init.join('\n')}
+        }
       })
       ${methods.join('\n')}
       return (${hooksView})
@@ -439,8 +443,12 @@ function exportPage(schema, option) {
     ${utils.join('\n')}
     export default function Page() {
       ${useState.join('\n')}
+      const hasCalled = useRef(false);
       useEffect(() => {
-        ${init.join('\n')}
+        if (!hasCalled.current) {
+          hasCalled.current = true;
+          ${init.join('\n')}
+        }
       })
       ${methods.join('\n')}
       return (${hooksView})
