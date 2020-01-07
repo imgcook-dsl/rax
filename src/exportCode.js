@@ -10,7 +10,7 @@ const {
   line2Hump
 } = require('./utils');
 
-function exportMod(schema, option) { 
+function exportMod(schema, option) {
   const { prettier } = option;
 
   const fileName = schema.fileName || schema.id;
@@ -91,7 +91,12 @@ function exportMod(schema, option) {
     }
 
     if (schema.loop) {
-      const parseLoopData = parseLoop(schema.loop, schema.loopArgs, xml, statesData);
+      const parseLoopData = parseLoop(
+        schema.loop,
+        schema.loopArgs,
+        xml,
+        statesData
+      );
       xml = parseLoopData.value;
       useState = useState.concat(parseLoopData.hookState);
     }
@@ -139,7 +144,7 @@ function exportMod(schema, option) {
             } else if (typeof item.isInit === 'string') {
               init.push(`if (${parseProps(item.isInit)}) { ${item.id}(); }`);
             }
-            const parseDataSourceData = parseDataSource(item, imports)
+            const parseDataSourceData = parseDataSource(item, imports);
             methods.push(parseDataSourceData.value);
             imports = parseDataSourceData.imports;
           });
@@ -201,12 +206,12 @@ function exportMod(schema, option) {
   const indexValue = prettier.format(
     `
     'use strict';
-    import { createElement, useState, useEffect, useRef } from 'rax';
+    import { createElement, useState, useEffect, useRef, memo } from 'rax';
     ${imports.join('\n')}
     import styles from './${fileName}.css';
 
     ${utils.join('\n')}
-    export default function Mod() {
+    export default memo((props) => {
       ${useState.join('\n')}
       const hasCalled = useRef(false);
       useEffect(() => {
@@ -217,7 +222,7 @@ function exportMod(schema, option) {
       })
       ${methods.join('\n')}
       return (${hooksView})
-    };
+    });
   `,
     prettierJsOpt
   );
@@ -234,10 +239,10 @@ function exportMod(schema, option) {
       panelValue: prettier.format(`${generateCSS(style)}`, prettierCssOpt),
       panelType: 'css'
     }
-  ]
+  ];
 }
 
-function exportPage(schema, option) { 
+function exportPage(schema, option) {
   const { prettier } = option;
 
   const fileName = schema.fileName || schema.id;
@@ -321,7 +326,12 @@ function exportPage(schema, option) {
     }
 
     if (schema.loop) {
-      const parseLoopData = parseLoop(schema.loop, schema.loopArgs, xml, statesData);
+      const parseLoopData = parseLoop(
+        schema.loop,
+        schema.loopArgs,
+        xml,
+        statesData
+      );
       xml = parseLoopData.value;
       useState = useState.concat(parseLoopData.hookState);
     }
@@ -368,7 +378,7 @@ function exportPage(schema, option) {
             } else if (typeof item.isInit === 'string') {
               init.push(`if (${parseProps(item.isInit)}) { ${item.id}(); }`);
             }
-            const parseDataSourceData = parseDataSource(item, imports)
+            const parseDataSourceData = parseDataSource(item, imports);
             methods.push(parseDataSourceData.value);
             imports = parseDataSourceData.imports;
           });
@@ -399,11 +409,12 @@ function exportPage(schema, option) {
             }
           });
         }
-
       } else if (['block'].indexOf(type) !== -1) {
         const blockName = schema.fileName || schema.id;
-        result +=`<${line2Hump(blockName)} />`;
-        importMods.push(`import ${line2Hump(blockName)} from './${blockName}';`)
+        result += `<${line2Hump(blockName)} />`;
+        importMods.push(
+          `import ${line2Hump(blockName)} from './${blockName}';`
+        );
       } else {
         result += generateRender(schema);
       }
@@ -439,7 +450,6 @@ function exportPage(schema, option) {
     ${imports.join('\n')}
     ${importMods.join('\n')}
     import styles from './${fileName}.css';
-    
 
     ${utils.join('\n')}
     export default function Page() {
@@ -470,7 +480,7 @@ function exportPage(schema, option) {
       panelValue: prettier.format(`${generateCSS(style)}`, prettierCssOpt),
       panelType: 'css'
     }
-  ]
+  ];
 }
 
 module.exports = {
