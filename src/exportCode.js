@@ -434,7 +434,7 @@ function exportPage(schema, option) {
   const indexValue = prettier.format(
     `
     'use strict';
-    import { createElement, useState, useEffect } from 'rax';
+    import { createElement, useState, useEffect, useRef } from 'rax';
     ${imports.join('\n')}
     ${importMods.join('\n')}
     import styles from './${fileName}.css';
