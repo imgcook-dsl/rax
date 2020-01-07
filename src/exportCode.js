@@ -201,15 +201,19 @@ function exportMod(schema, option) {
   const indexValue = prettier.format(
     `
     'use strict';
-    import { createElement, useState, useEffect } from 'rax';
+    import { createElement, useState, useEffect, useRef } from 'rax';
     ${imports.join('\n')}
     import styles from './${fileName}.css';
 
     ${utils.join('\n')}
     export default function Mod() {
       ${useState.join('\n')}
+      const hasCalled = useRef(false);
       useEffect(() => {
-        ${init.join('\n')}
+        if (!hasCalled.current) {
+          hasCalled.current = true;
+          ${init.join('\n')}
+        }
       })
       ${methods.join('\n')}
       return (${hooksView})
@@ -431,7 +435,7 @@ function exportPage(schema, option) {
   const indexValue = prettier.format(
     `
     'use strict';
-    import { createElement, useState, useEffect } from 'rax';
+    import { createElement, useState, useEffect, useRef } from 'rax';
     ${imports.join('\n')}
     ${importMods.join('\n')}
     import styles from './${fileName}.css';
@@ -440,8 +444,12 @@ function exportPage(schema, option) {
     ${utils.join('\n')}
     export default function Page() {
       ${useState.join('\n')}
+      const hasCalled = useRef(false);
       useEffect(() => {
-        ${init.join('\n')}
+        if (!hasCalled.current) {
+          hasCalled.current = true;
+          ${init.join('\n')}
+        }
       })
       ${methods.join('\n')}
       return (${hooksView})

@@ -1,5 +1,5 @@
 'use strict';
-import { createElement, useState, useEffect } from 'rax';
+import { createElement, useState, useEffect, useRef } from 'rax';
 import { fetch } from 'whatwg-fetch';
 import jsonp from 'fetch-jsonp';
 import View from 'rax-view';
@@ -25,11 +25,15 @@ export default function Page() {
       url: 'https://www.imgcook.com/docs'
     }
   ]);
+  const hasCalled = useRef(false);
   useEffect(() => {
-    fetch_example();
-    jsonp_example();
+    if (!hasCalled.current) {
+      hasCalled.current = true;
+      fetch_example();
+      jsonp_example();
 
-    console.log('super props');
+      console.log('super props');
+    }
   });
   function isReadCountShow(readCount) {
     return readCount > 300;
