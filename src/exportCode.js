@@ -222,7 +222,8 @@ function exportMod(schema, option) {
     {
       panelName: `${fileName}.jsx`,
       panelValue: indexValue,
-      panelType: 'js'
+      panelType: 'js',
+      panelImports: imports
     },
     {
       panelName: `${fileName}.css`,
@@ -453,7 +454,8 @@ function exportPage(schema, option) {
     {
       panelName: `${fileName}.jsx`,
       panelValue: indexValue,
-      panelType: 'js'
+      panelType: 'js',
+      panelImports: imports.concat(importMods)
     },
     {
       panelName: `${fileName}.css`,
