@@ -1,5 +1,5 @@
 'use strict';
-import { createElement, useState, useEffect } from 'rax';
+import { createElement, useState, useEffect, useRef } from 'rax';
 import { fetch } from 'whatwg-fetch';
 import jsonp from 'fetch-jsonp';
 import View from 'rax-view';
