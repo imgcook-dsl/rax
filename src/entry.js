@@ -1,5 +1,6 @@
 
 const { exportMod, exportPage } = require('./exportCode');
+const { line2Hump } = require('./utils');
 
 module.exports = function(schema, option) {
 
@@ -8,6 +9,12 @@ module.exports = function(schema, option) {
   function schemaHandler(json) {
     switch (json.componentName.toLowerCase()) {
       case 'block':
+        // parse fileName
+        json.fileName = json.fileName || json.id;
+        if (json.smart && json.smart.layerProtocol && json.smart.layerProtocol.module && json.smart.layerProtocol.module.type) {
+          json.fileName = json.smart.layerProtocol.module.type.replace(/[@|\/]/g, '');
+        }
+        json.fileName = line2Hump(json.fileName);
         blocks.push(json);
         break;
       default:

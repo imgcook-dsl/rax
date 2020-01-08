@@ -13,7 +13,7 @@ const {
 function exportMod(schema, option) {
   const { prettier } = option;
 
-  const fileName = schema.fileName || schema.id;
+  const fileName = schema.fileName;
 
   // imports
   let imports = [];
