@@ -18,6 +18,9 @@ function exportMod(schema, option) {
   // imports
   let imports = [];
 
+  // imports mods
+  let importMods = [];
+
   // inline style
   const style = {};
 
@@ -112,7 +115,7 @@ function exportMod(schema, option) {
   // parse schema
   const transform = schema => {
     let result = '';
-
+    const blockName = schema.fileName || schema.id;
     if (Array.isArray(schema)) {
       schema.forEach(layer => {
         result += transform(layer);
@@ -120,7 +123,7 @@ function exportMod(schema, option) {
     } else {
       const type = schema.componentName.toLowerCase();
 
-      if (['page'].indexOf(type) !== -1) {
+      if (['page'].indexOf(type) !== -1 || blockName === fileName) {
         // 容器组件处理: state/method/dataSource/lifeCycle
         const states = [];
         const lifeCycles = [];
@@ -175,6 +178,11 @@ function exportMod(schema, option) {
             }
           });
         }
+      } else if (['block'].indexOf(type) !== -1) {
+        result += `<${line2Hump(blockName)} />`;
+        importMods.push(
+          `import ${line2Hump(blockName)} from './${blockName}';`
+        );
       } else {
         result += generateRender(schema);
       }
@@ -208,6 +216,8 @@ function exportMod(schema, option) {
     'use strict';
     import { createElement, useState, useEffect, useRef, memo } from 'rax';
     ${imports.join('\n')}
+    ${importMods.join('\n')}
+
     import styles from './${fileName}.css';
 
     ${utils.join('\n')}
