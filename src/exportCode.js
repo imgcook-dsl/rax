@@ -181,7 +181,7 @@ function exportMod(schema, option) {
       } else if (['block'].indexOf(type) !== -1) {
         result += `<${line2Hump(blockName)} />`;
         importMods.push(
-          `import ${line2Hump(blockName)} from './${blockName}';`
+          `import ${line2Hump(blockName)} from '../${blockName}';`
         );
       } else {
         result += generateRender(schema);
