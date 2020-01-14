@@ -22,7 +22,12 @@ module.exports = {
     "componentName": "Div",
     "props": {
       "onClick": function onClick(e) {
-        window.open(this.item.url, '_blank')
+        window.open(this.item.url, '_blank');
+        dispatch({
+          event: e,
+          type: 'changeTxt',
+          payload: { val: Math.random() }
+        });
       },
       "data-url": "{{this.item.url}}",
       "key": "{{this.item.index}}"

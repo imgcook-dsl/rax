@@ -27,9 +27,6 @@ function exportMod(schema, option) {
   // Global Public Functions
   const utils = [];
 
-  // Classes
-  const classes = [];
-
   // states
   let statesData = null;
 
@@ -211,12 +208,14 @@ function exportMod(schema, option) {
     parser: 'css'
   };
   const hooksView = generateRender(schema);
+  const hasDispatch = hooksView.match('dispatch');
   const indexValue = prettier.format(
     `
     'use strict';
     import { createElement, useState, useEffect, useRef, memo } from 'rax';
     ${imports.join('\n')}
     ${importMods.join('\n')}
+    ${hasDispatch ? 'import { IndexContext } from \'../../context\';' : ''}
 
     import styles from './${fileName}.css';
 
@@ -224,6 +223,11 @@ function exportMod(schema, option) {
     export default memo((props) => {
       ${useState.join('\n')}
       const hasCalled = useRef(false);
+      ${
+        hasDispatch
+          ? 'const { state: { txt }, dispatch} = useContext(IndexContext);'
+          : ''
+      }
       useEffect(() => {
         if (!hasCalled.current) {
           hasCalled.current = true;
@@ -268,9 +272,6 @@ function exportPage(schema, option) {
 
   // Global Public Functions
   const utils = [];
-
-  // Classes
-  const classes = [];
 
   // states
   let statesData = null;
@@ -453,18 +454,63 @@ function exportPage(schema, option) {
     parser: 'css'
   };
   const hooksView = generateRender(schema);
+
+  const contextValue = prettier.format(
+    `import { createElement, createContext, useReducer } from 'rax';
+
+    const initState = {
+      txt: 'click me' // Get data, trigger proactively useEffect
+    };
+    
+    function UserReducer(state, action) {
+      switch (action.type) {
+        case 'changeTxt':
+          return {
+            ...state,
+            txt: \`click me \${action.payload.val}\`
+          };
+        default:
+          return state;
+      }
+    }
+    
+    const IndexContext = createContext();
+    
+    const IndexProvider = props => {
+      const [state, dispatch] = useReducer(UserReducer, initState);
+      return (
+        <IndexContext.Provider value={{ state, dispatch }}>
+          {props.children}
+        </IndexContext.Provider>
+      );
+    };
+    
+    export { IndexContext, IndexProvider };
+  `,
+    prettierJsOpt
+  );
+
+  const hasDispatch = hooksView.match('dispatch');
   const indexValue = prettier.format(
     `
     'use strict';
     import { createElement, useState, useEffect, useRef } from 'rax';
     ${imports.join('\n')}
     ${importMods.join('\n')}
+    import { ${
+      hasDispatch ? 'IndexContext, IndexProvider' : 'IndexProvider'
+    } } from './context';
     import styles from './${fileName}.css';
 
     ${utils.join('\n')}
     export default function Page() {
       ${useState.join('\n')}
       const hasCalled = useRef(false);
+      ${
+        hasDispatch
+          ? 'const { state: { txt }, dispatch} = useContext(IndexContext);'
+          : ''
+      }
       useEffect(() => {
         if (!hasCalled.current) {
           hasCalled.current = true;
@@ -472,7 +518,7 @@ function exportPage(schema, option) {
         }
       })
       ${methods.join('\n')}
-      return (${hooksView})
+      return (<IndexProvider>${hooksView}</IndexProvider>)
     };
   `,
     prettierJsOpt
@@ -484,6 +530,11 @@ function exportPage(schema, option) {
       panelValue: indexValue,
       panelType: 'js',
       panelImports: imports.concat(importMods)
+    },
+    {
+      panelName: `context.jsx`,
+      panelValue: contextValue,
+      panelType: 'js'
     },
     {
       panelName: `${fileName}.css`,
