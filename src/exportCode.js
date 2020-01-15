@@ -119,7 +119,7 @@ function exportMod(schema, option) {
       useState = useState.concat(parseLoopData.hookState);
     }
     if (schema.condition) {
-      xml = parseCondition(schema.condition.replace(/this\./, ''), xml);
+      xml = parseCondition(schema.condition, xml);
     }
     if (schema.loop || schema.condition) {
       xml = `{${xml}}`;
@@ -384,7 +384,7 @@ function exportPage(schema, option) {
       useState = useState.concat(parseLoopData.hookState);
     }
     if (schema.condition) {
-      xml = parseCondition(schema.condition.replace(/this\./, ''), xml);
+      xml = parseCondition(schema.condition, xml);
     }
     if (schema.loop || schema.condition) {
       xml = `{${xml}}`;
@@ -571,7 +571,8 @@ function exportPage(schema, option) {
     {
       panelName: `context.jsx`,
       panelValue: contextValue,
-      panelType: 'js'
+      panelType: 'js',
+      panelImports: []
     },
     {
       panelName: `${fileName}.css`,

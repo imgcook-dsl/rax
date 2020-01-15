@@ -107,6 +107,7 @@ const parseCondition = (condition, render) => {
   if (typeof condition === 'boolean') {
     return `${condition} && ${render}`
   } else if (typeof condition === 'string') {
+    condition = condition.replace(/this\./, '');
     return `${condition.slice(2, -2)} && ${render}`
   }
 }
