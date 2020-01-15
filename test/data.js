@@ -368,6 +368,12 @@ module.exports = {
           }
         }],
         "condition": "{{this.isReadCountShow(this.item.readCount)}}"
+      },{
+        "componentName": "Button",
+        "props": {
+          "type": "primary"
+        },
+        "children": "确定"
       }]
     }],
     "loopArgs": ["item", "index"],

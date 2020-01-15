@@ -5,6 +5,7 @@ import jsonp from 'fetch-jsonp';
 import View from 'rax-view';
 import Image from 'rax-image';
 import Text from 'rax-text';
+import Button from 'Button';
 
 import { IndexContext, IndexProvider } from './context';
 import styles from './index.css';
@@ -116,6 +117,7 @@ export default function Page() {
                     <Text style={styles.num}>{item.readCount}</Text>
                   </View>
                 )}
+                <Button type={'primary'}>确定</Button>
               </View>
             </View>
           );

@@ -88,6 +88,24 @@ function exportMod(schema, option) {
           xml = `<View${classString}${props} />`;
         }
         break;
+      default:
+        const singleImport = `import ${componentName} from '${componentName}'`;
+        if (imports.indexOf(singleImport) === -1) {
+          imports.push(singleImport);
+        }
+        if (
+          schema.children &&
+          schema.children.length &&
+          Array.isArray(schema.children)
+        ) {
+          xml = `<${componentName}${classString}${props}>${transform(
+            schema.children
+          )}</${componentName}>`;
+        } else if (typeof schema.children === 'string') {
+          xml = `<${componentName}${classString}${props} >${schema.children}</${componentName}>`;
+        } else {
+          xml = `<${componentName}${classString}${props} />`;
+        }
     }
 
     if (schema.loop) {
@@ -215,7 +233,7 @@ function exportMod(schema, option) {
     import { createElement, useState, useEffect, useRef, memo } from 'rax';
     ${imports.join('\n')}
     ${importMods.join('\n')}
-    ${hasDispatch ? 'import { IndexContext } from \'../../context\';' : ''}
+    ${hasDispatch ? "import { IndexContext } from '../../context';" : ''}
 
     import styles from './${fileName}.css';
 
@@ -287,6 +305,7 @@ function exportPage(schema, option) {
 
   // generate render xml
   const generateRender = schema => {
+    const componentName = schema.componentName;
     const type = schema.componentName.toLowerCase();
     const className = schema.props && schema.props.className;
     const classString = className ? ` style={styles.${className}}` : '';
@@ -334,6 +353,24 @@ function exportPage(schema, option) {
           xml = `<View${classString}${props} />`;
         }
         break;
+      default:
+        const singleImport = `import ${componentName} from '${componentName}'`;
+        if (imports.indexOf(singleImport) === -1) {
+          imports.push(singleImport);
+        }
+        if (
+          schema.children &&
+          schema.children.length &&
+          Array.isArray(schema.children)
+        ) {
+          xml = `<${componentName}${classString}${props}>${transform(
+            schema.children
+          )}</${componentName}>`;
+        } else if (typeof schema.children === 'string') {
+          xml = `<${componentName}${classString}${props} >${schema.children}</${componentName}>`;
+        } else {
+          xml = `<${componentName}${classString}${props} />`;
+        }
     }
 
     if (schema.loop) {

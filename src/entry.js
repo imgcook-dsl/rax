@@ -26,7 +26,7 @@ module.exports = function(schema, option) {
       default:
         break;
     }
-    if (json.children && json.children.length > 0) {
+    if (json.children && json.children.length > 0 && Array.isArray(json.children)) {
       json.children.forEach(child => {
         schemaHandler(child);
       });
