@@ -160,14 +160,15 @@ const parseLoop = (loop, loopArg, render, states) => {
   if (data.match(/this\.state\./)) {
     stateValue = data.split('.').pop();
   }
-  
   // hooks state
   const hookState = [];
-  hookState.push(
-    `const [${stateValue}, set${toUpperCaseStart(
-      stateValue
-    )}] = useState(${toString(JSON.parse(states)[stateValue]) || null});`
-  );
+  if (states) {
+    hookState.push(
+      `const [${stateValue}, set${toUpperCaseStart(
+        stateValue
+      )}] = useState(${toString(JSON.parse(states)[stateValue]) || null});`
+    );
+  }
   return {
     hookState,
     value: `${stateValue}.map((${loopArgItem}, ${loopArgIndex}) => {
