@@ -4,7 +4,12 @@ const { line2Hump } = require('./utils');
 module.exports = function(schema, option) {
   // get blocks json
   const blocks = [];
-  function schemaHandler(json) {
+  const scale = 750 / (option.responsive && option.responsive.width || 750);
+
+  option.scale = scale;
+
+  function schemaHandler(option) {
+    const { json, scale } = option;
     switch (json.componentName.toLowerCase()) {
       case 'block':
         // parse fileName
@@ -28,13 +33,19 @@ module.exports = function(schema, option) {
     }
     if (json.children && json.children.length > 0 && Array.isArray(json.children)) {
       json.children.forEach(child => {
-        schemaHandler(child);
+        schemaHandler({
+          json: child,
+          scale,
+        });
       });
     }
   }
 
   // invoke
-  schemaHandler(schema);
+  schemaHandler({
+    json: schema,
+    scale
+  });
 
   // export module code
   let panelDisplay = [];

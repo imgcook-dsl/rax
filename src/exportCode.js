@@ -11,7 +11,7 @@ const {
 } = require('./utils');
 
 function exportMod(schema, option) {
-  const { prettier } = option;
+  const { prettier, scale } = option;
 
   const fileName = schema.fileName;
 
@@ -46,7 +46,7 @@ function exportMod(schema, option) {
     const classString = className ? ` style={styles.${className}}` : '';
 
     if (className) {
-      style[className] = parseStyle(schema.props.style);
+      style[className] = parseStyle(schema.props.style, scale);
     }
 
     let xml;
@@ -275,7 +275,7 @@ function exportMod(schema, option) {
 }
 
 function exportPage(schema, option) {
-  const { prettier } = option;
+  const { prettier, scale } = option;
 
   const fileName = schema.fileName || schema.id;
 
@@ -311,7 +311,7 @@ function exportPage(schema, option) {
     const classString = className ? ` style={styles.${className}}` : '';
 
     if (className) {
-      style[className] = parseStyle(schema.props.style);
+      style[className] = parseStyle(schema.props.style, scale);
     }
 
     let xml;
