@@ -5,6 +5,7 @@ const {
   parseFunction,
   parseProps,
   parseState,
+  parseLifeCycles,
   replaceState,
   parseCondition,
   generateCSS,
@@ -37,6 +38,9 @@ function exportMod(schema, option) {
 
   // methods
   const methods = [];
+
+  // life cycles
+  let lifeCycles = [];
 
   // init
   const init = [];
@@ -146,7 +150,6 @@ function exportMod(schema, option) {
       if (['page'].indexOf(type) !== -1 || blockName === fileName) {
         // 容器组件处理: state/method/dataSource/lifeCycle
         const states = [];
-        const lifeCycles = [];
 
         if (schema.state) {
           states.push(`state = ${toString(schema.state)}`);
@@ -182,21 +185,7 @@ function exportMod(schema, option) {
         }
 
         if (schema.lifeCycles) {
-          if (!schema.lifeCycles['_constructor']) {
-            lifeCycles.push(
-              `constructor(props, context) { super(); ${init.join('\n')}}`
-            );
-          }
-
-          Object.keys(schema.lifeCycles).forEach(name => {
-            const { params, content } = parseFunction(schema.lifeCycles[name]);
-
-            if (name === '_constructor') {
-              init.push(content);
-            } else {
-              lifeCycles.push(`${name}(${params}) {${content}}`);
-            }
-          });
+          lifeCycles = parseLifeCycles(schema, init);
         }
 
         if (statesData) {
@@ -239,7 +228,7 @@ function exportMod(schema, option) {
   const indexValue = prettier.format(
     `
     'use strict';
-    import { createElement, useState, useEffect, useRef, memo } from 'rax';
+    import { createElement, useState, useEffect, memo } from 'rax';
     ${imports.join('\n')}
     ${importMods.join('\n')}
     ${hasDispatch ? "import { IndexContext } from '../../context';" : ''}
@@ -249,18 +238,12 @@ function exportMod(schema, option) {
     ${utils.join('\n')}
     export default memo((props) => {
       ${useState.join('\n')}
-      const hasCalled = useRef(false);
       ${
         hasDispatch
           ? 'const { state: { txt }, dispatch} = useContext(IndexContext);'
           : ''
       }
-      useEffect(() => {
-        if (!hasCalled.current) {
-          hasCalled.current = true;
-          ${init.join('\n')}
-        }
-      })
+      ${lifeCycles.join('\n')}
       ${methods.join('\n')}
       return (${hooksView})
     });
@@ -308,6 +291,9 @@ function exportPage(schema, option) {
 
   // methods
   const methods = [];
+
+  // life cycles
+  let lifeCycles = [];
 
   // init
   const init = [];
@@ -418,7 +404,6 @@ function exportPage(schema, option) {
       if (['page'].indexOf(type) !== -1) {
         // 容器组件处理: state/method/dataSource/lifeCycle
         const states = [];
-        const lifeCycles = [];
         if (schema.state) {
           states.push(`state = ${toString(schema.state)}`);
           statesData = toString(schema.state);
@@ -453,21 +438,7 @@ function exportPage(schema, option) {
         }
 
         if (schema.lifeCycles) {
-          if (!schema.lifeCycles['_constructor']) {
-            lifeCycles.push(
-              `constructor(props, context) { super(); ${init.join('\n')}}`
-            );
-          }
-
-          Object.keys(schema.lifeCycles).forEach(name => {
-            const { params, content } = parseFunction(schema.lifeCycles[name]);
-
-            if (name === '_constructor') {
-              init.push(content);
-            } else {
-              lifeCycles.push(`${name}(${params}) {${content}}`);
-            }
-          });
+          lifeCycles = parseLifeCycles(schema, init);
         }
 
         if (statesData) {
@@ -547,7 +518,7 @@ function exportPage(schema, option) {
   const indexValue = prettier.format(
     `
     'use strict';
-    import { createElement, useState, useEffect, useRef } from 'rax';
+    import { createElement, useState, useEffect } from 'rax';
     ${imports.join('\n')}
     ${importMods.join('\n')}
     import { ${
@@ -558,18 +529,14 @@ function exportPage(schema, option) {
     ${utils.join('\n')}
     export default function Page() {
       ${useState.join('\n')}
-      const hasCalled = useRef(false);
       ${
         hasDispatch
           ? 'const { state: { txt }, dispatch} = useContext(IndexContext);'
           : ''
       }
-      useEffect(() => {
-        if (!hasCalled.current) {
-          hasCalled.current = true;
-          ${init.join('\n')}
-        }
-      })
+
+      ${lifeCycles.join('\n')}
+      
       ${methods.join('\n')}
       return (<IndexProvider>${hooksView}</IndexProvider>)
     };

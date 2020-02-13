@@ -195,8 +195,58 @@ const replaceState = (render) => {
 };
 
 // replace state
-const parseLifeCircle = (render) => {
-  
+const parseLifeCycles = (schema, init) => {
+  let lifeCycles = [];
+  if (!schema.lifeCycles['_constructor'] && init) {
+    schema.lifeCycles['_constructor'] = `function _constructor() {}`
+  }
+
+  Object.keys(schema.lifeCycles).forEach(name => {
+    let { params, content } = parseFunction(schema.lifeCycles[name]);
+    content = replaceState(content);
+    switch(name){
+      case '_constructor':{
+        init.push(content);
+        lifeCycles.unshift(`
+          // constructor
+          useState(()=>{
+            ${init.join('\n')}
+          })
+        `)
+        break;
+      }
+      case 'componentDidMount':{
+        lifeCycles.push(`
+          // componentDidMount
+          useEffect(()=>{
+            ${content}
+          }, [])
+        `)
+        break;
+      }
+      case 'componentDidUpdate':{
+        lifeCycles.push(`
+          // componentDidUpdate
+          useEffect(()=>{
+            ${content}
+          })
+        `)
+        break;
+      }
+      case 'componentWillUnMount':{
+        lifeCycles.push(`
+          // componentWillUnMount
+          useEffect(()=>{
+            return ()=>{
+              ${content}
+            }
+          }, [])
+        `)
+        break;
+      }
+    }
+  });
+  return lifeCycles;
 };
 
 
@@ -273,6 +323,7 @@ module.exports = {
   parseCondition,
   parseProps,
   parseState,
+  parseLifeCycles,
   replaceState,
   generateCSS
 }
