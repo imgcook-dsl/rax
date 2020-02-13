@@ -1,65 +1,27 @@
 'use strict';
 import { createElement, useState, useEffect, useRef } from 'rax';
-import { fetch } from 'whatwg-fetch';
 import jsonp from 'fetch-jsonp';
 import View from 'rax-view';
 import Image from 'rax-image';
 import Text from 'rax-text';
-import Button from 'Button';
 
-import { IndexContext, IndexProvider } from './context';
+import { IndexProvider } from './context';
 import styles from './index.css';
 
 export default function Page() {
-  const [data, setData] = useState([
-    {
-      title: '小户型卫浴怎样才能装得高大上？',
-      coverImage: 'https://img.alicdn.com/tfs/TB1Txq6o7T2gK0jSZFkXXcIQFXa-684-684.png',
-      readCount: 200,
-      user: { userImage: 'https://img.alicdn.com/tfs/TB1DWe6oYj1gK0jSZFOXXc7GpXa-60-60.png', userName: '时尚家居' },
-      url: 'https://www.imgcook.com'
-    },
-    {
-      title: '拥有超多功能的40平米简约小公寓了解一下',
-      coverImage: 'https://img.alicdn.com/tfs/TB1XRQTo7P2gK0jSZPxXXacQpXa-684-648.png',
-      readCount: 500,
-      user: { userImage: 'https://img.alicdn.com/tfs/TB1DWe6oYj1gK0jSZFOXXc7GpXa-60-60.png', userName: '花花设计工作' },
-      url: 'https://www.imgcook.com/docs'
-    }
-  ]);
+  const [state, setState] = useState({ count: '21万观看', title: '跟着我走', favo: '13万' });
   const hasCalled = useRef(false);
-  const {
-    state: { txt },
-    dispatch
-  } = useContext(IndexContext);
+
   useEffect(() => {
     if (!hasCalled.current) {
       hasCalled.current = true;
-      fetch_example();
-      jsonp_example();
-
-      console.log('super props');
+      fetchJsonp();
     }
   });
-  function isReadCountShow(readCount) {
-    return readCount > 300;
-  }
-  function fetch_example() {
-    fetch('https://jsonplaceholder.typicode.com/todos/1', { method: 'GET', headers: '{"Content-Type":"json"}' })
+  function fetchJsonp() {
+    jsonp('http://ide.def.alibaba-inc.com/ide?id=4367&repo=page-project/rax-app-1', { body: { name: '111' } })
       .then(response => response.json())
       .then((data, error) => {
-        console.log('fetch example: ', data, error);
-        return data;
-      })
-      .catch(e => {
-        console.log('error', e);
-      });
-  }
-  function jsonp_example() {
-    jsonp('https://assets.airbnb.com/frontend/search_results.js', { jsonpCallbackFunction: 'search_results', body: {} })
-      .then(response => response.json())
-      .then((data, error) => {
-        console.log('jsonp example: ', data, error);
         return data;
       })
       .catch(e => {
@@ -68,60 +30,41 @@ export default function Page() {
   }
   return (
     <IndexProvider>
-      <View style={styles.box}>
-        {data.map((item, index) => {
-          return (
-            <View
-              key={index}
-              onClick={e => {
-                window.open(item.url, '_blank');
-                dispatch({
-                  event: e,
-                  type: 'changeTxt',
-                  payload: { val: Math.random() }
-                });
-              }}
-              data-url={item.url}
-            >
-              <View style={styles.bd}>
+      <View style={styles.block_3}>
+        <View style={styles.box}>
+          <Image
+            style={styles.layer}
+            source={{ uri: 'https://img.alicdn.com/tfs/TB1GDkvvEY1gK0jSZFMXXaWcVXa-696-1032.png' }}
+          />
+          <View style={styles.hd}>
+            <View style={styles.container}>
+              <View style={styles.color} />
+              <Text style={styles.liveBroadcast}>直播中</Text>
+            </View>
+            {1 == 1 && <Text style={styles.wanguankan}>{state.count}</Text>}
+          </View>
+          <View style={styles.bd}>
+            <Text style={styles.title}>{state.title}</Text>
+            <View style={styles.block_2}>
+              <View style={styles.outer}>
                 <Image
-                  style={styles.layer}
-                  source={{ uri: 'https://img.alicdn.com/tfs/TB1bLoWoYH1gK0jSZFwXXc7aXXa-684-684.png' }}
+                  style={styles.caipiao}
+                  source={{ uri: 'https://img.alicdn.com/tfs/TB1f6ozvxD1gK0jSZFyXXciOVXa-96-96.png' }}
                 />
-                <Image style={styles.bg} source={{ uri: item.coverImage }} />
-                <View style={styles.wrap}>
-                  <Image
-                    style={styles.riverdinwei}
-                    source={{ uri: 'https://img.alicdn.com/tfs/TB1mtZRoVT7gK0jSZFpXXaTkpXa-28-36.png' }}
-                  />
-                  <Text style={styles.distance}>距离500m</Text>
-                </View>
+                <Text style={styles.info}>翡翠定制专家</Text>
               </View>
-              <View style={styles.main}>
-                <Text style={styles.title}>{item.title}</Text>
-              </View>
-              <View style={styles.ft}>
-                <View style={styles.block}>
+              <View style={styles.block}>
+                <View style={styles.iconcollectionwhitWrap}>
                   <Image
-                    style={styles.xianjin}
-                    source={{ uri: 'https://img.alicdn.com/tfs/TB1OvsYoW61gK0jSZFlXXXDKFXa-60-60.png' }}
+                    style={styles.iconcollectionwhit}
+                    source={{ uri: 'https://img.alicdn.com/tfs/TB1EgB1u1bviK0jSZFNXXaApXXa-32-26.png' }}
                   />
-                  <Text style={styles.fashionHome}>{item.user.userName}</Text>
                 </View>
-                {isReadCountShow(item.readCount) && (
-                  <View style={styles.group}>
-                    <Image
-                      style={styles.favorite}
-                      source={{ uri: 'https://img.alicdn.com/tfs/TB1arwYo7T2gK0jSZFkXXcIQFXa-46-44.png' }}
-                    />
-                    <Text style={styles.num}>{item.readCount}</Text>
-                  </View>
-                )}
-                <Button type={'primary'}>确定</Button>
+                <Text style={styles.wan}>{state.favo}</Text>
               </View>
             </View>
-          );
-        })}
+          </View>
+        </View>
       </View>
     </IndexProvider>
   );

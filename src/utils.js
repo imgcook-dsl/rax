@@ -177,6 +177,29 @@ const parseLoop = (loop, loopArg, render, states) => {
   };
 };
 
+// parse state
+const parseState = (states) => {
+  let stateName = 'state';
+  // hooks state
+  return `const [${stateName}, set${toUpperCaseStart(
+    stateName
+  )}] = useState(${toString(JSON.parse(states)) || null});`;
+};
+
+// replace state
+const replaceState = (render) => {
+  // remove `this`
+  let stateName = 'state';
+  const re = new RegExp(`this.state`, 'g');
+  return render.replace(re, stateName);
+};
+
+// replace state
+const parseLifeCircle = (render) => {
+  
+};
+
+
 // parse async dataSource
 const parseDataSource = (data, imports) => {
   const name = data.id;
@@ -209,7 +232,7 @@ const parseDataSource = (data, imports) => {
 
   // params parse should in string template
   if (params) {
-    payload = `${toString(payload).slice(0, -1)} ,body: ${
+    payload = `${toString(payload).slice(0, -1)} body: ${
       isExpression(params) ? parseProps(params) : toString(params)
     }}`;
   } else {
@@ -249,5 +272,7 @@ module.exports = {
   parseLoop,
   parseCondition,
   parseProps,
+  parseState,
+  replaceState,
   generateCSS
 }

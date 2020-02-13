@@ -4,6 +4,8 @@ const {
   parseStyle,
   parseFunction,
   parseProps,
+  parseState,
+  replaceState,
   parseCondition,
   generateCSS,
   parseDataSource,
@@ -118,6 +120,9 @@ function exportMod(schema, option) {
       xml = parseLoopData.value;
       useState = useState.concat(parseLoopData.hookState);
     }
+    
+    xml = replaceState(xml);
+
     if (schema.condition) {
       xml = parseCondition(schema.condition, xml);
     }
@@ -192,6 +197,10 @@ function exportMod(schema, option) {
               lifeCycles.push(`${name}(${params}) {${content}}`);
             }
           });
+        }
+
+        if (statesData) {
+          useState.push(parseState(statesData));
         }
       } else if (['block'].indexOf(type) !== -1) {
         result += `<${line2Hump(blockName)} />`;
@@ -383,6 +392,9 @@ function exportPage(schema, option) {
       xml = parseLoopData.value;
       useState = useState.concat(parseLoopData.hookState);
     }
+    
+    xml = replaceState(xml);
+
     if (schema.condition) {
       xml = parseCondition(schema.condition, xml);
     }
@@ -456,6 +468,10 @@ function exportPage(schema, option) {
               lifeCycles.push(`${name}(${params}) {${content}}`);
             }
           });
+        }
+
+        if (statesData) {
+          useState.push(parseState(statesData));
         }
       } else if (['block'].indexOf(type) !== -1) {
         const blockName = schema.fileName || schema.id;
