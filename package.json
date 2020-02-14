@@ -1,5 +1,6 @@
 {
   "name": "@imgcook/dsl-template",
+  "version": "0.0.1",
   "scripts": {
     "debug": "npx webpack --config webpack.config.js --mode=development",
     "build": "npx webpack --config webpack.config.js --mode=production",
