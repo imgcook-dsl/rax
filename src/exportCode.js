@@ -245,7 +245,7 @@ function exportMod(schema, option) {
       }
       ${lifeCycles.join('\n')}
       ${methods.join('\n')}
-      return (${hooksView})
+      ${hooksView.match(/^\{true\ \&\& /) ? `return (<View>${hooksView}</View>)`: `return (${hooksView})`}
     });
   `,
     prettierJsOpt
