@@ -70,18 +70,19 @@ function exportMod(schema, option) {
         if (imports.indexOf(`import Text from 'rax-text'`) === -1) {
           imports.push(`import Text from 'rax-text'`);
         }
-        let innerText = parseProps(schema.props.text, true);
+        let innerText = parseProps(schema.props.text || schema.text, true);
         if (innerText.match(/this\.props/)) {
           innerText = innerText.replace(/this\./, '');
         }
-        xml = `<Text${classString}${props}>${innerText}</Text>`;
+        xml = `<Text${classString}${props}>${innerText || ''}</Text>`;
         break;
       case 'image':
         if (imports.indexOf(`import Image from 'rax-image'`) === -1) {
           imports.push(`import Image from 'rax-image'`);
         }
-        const source = parseProps(schema.props.src);
-        xml = `<Image${classString}${props} source={{uri: ${source}}} />`;
+        let source = parseProps(schema.props.src);
+        source = source && `source={{uri: ${source}}}` || '';
+        xml = `<Image${classString}${props} ${source} />`;
         break;
       case 'div':
       case 'page':

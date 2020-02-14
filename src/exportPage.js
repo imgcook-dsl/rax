@@ -70,15 +70,19 @@ function exportPage(schema, option) {
         if (imports.indexOf(`import Text from 'rax-text'`) === -1) {
           imports.push(`import Text from 'rax-text'`);
         }
-        const innerText = parseProps(schema.props.text, true);
-        xml = `<Text${classString}${props}>${innerText}</Text>`;
+        const innerText = parseProps(schema.props.text || schema.text, true);
+        xml = `<Text${classString}${props}>${innerText || ''}</Text>`;
         break;
       case 'image':
         if (imports.indexOf(`import Image from 'rax-image'`) === -1) {
           imports.push(`import Image from 'rax-image'`);
         }
-        const source = parseProps(schema.props.src);
-        xml = `<Image${classString}${props} source={{uri: ${source}}} />`;
+        if (schema.props.src) {
+          
+        }
+        let source = parseProps(schema.props.src);
+        source = source && `source={{uri: ${source}}}` || '';
+        xml = `<Image${classString}${props} ${source} />`;
         break;
       case 'div':
       case 'page':
