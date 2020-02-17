@@ -158,28 +158,18 @@ const parseLoop = (loop, loopArg, render, states) => {
 
   // add loop key
   const tagEnd = render.match(/^<.+?\s/)[0].length;
-  render = `${render.slice(0, tagEnd)} key={${loopArgIndex}}${render.slice(
-    tagEnd
-  )}`;
+  render = `${render.slice(0, tagEnd)} key={${loopArgIndex}}${render.slice(tagEnd)}`;
 
   // remove `this`
   const re = new RegExp(`this.${loopArgItem}`, 'g');
   render = render.replace(re, loopArgItem);
   let stateValue = data;
   if (data.match(/this\.state\./)) {
-    stateValue = data.split('.').pop();
+    stateValue = `state.${data.split('.').pop()}`;
   }
-  // hooks state
-  const hookState = [];
-  if (states) {
-    hookState.push(
-      `const [${stateValue}, set${toUpperCaseStart(
-        stateValue
-      )}] = useState(${toString(JSON.parse(states)[stateValue]) || null});`
-    );
-  }
+
   return {
-    hookState,
+    hookState: [],
     value: `${stateValue}.map((${loopArgItem}, ${loopArgIndex}) => {
       return (${render});
     })`

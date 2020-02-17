@@ -16,6 +16,13 @@
   width: 348rpx;
   height: 516rpx;
 }
+.layer {
+  position: absolute;
+  top: 0rpx;
+  left: 0rpx;
+  width: 348rpx;
+  height: 516rpx;
+}
 .hd {
   box-sizing: border-box;
   display: flex;
