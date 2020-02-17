@@ -7,7 +7,6 @@ const prettier = require('prettier');
 const { NodeVM } = require('vm2');
 const _ = require('lodash');
 const data = require('./data');
-const code = require('../src/index.js');
 const helper = require('@imgcook/dsl-helper');
 
 const vm = new NodeVM({
@@ -17,20 +16,11 @@ const vm = new NodeVM({
 
 co(function*() {
   const xtplRender = thunkify(xtpl.render);
-  // const code = fs.readFileSync(
-  //   path.resolve(__dirname, '../src/index.js'),
-  //   'utf8'
-  // );
-  // const renderInfo = vm.run(code)(data, {
-  //   prettier: prettier,
-  //   _: _,
-  //   responsive: {
-  //     width: 750,
-  //     viewportWidth: 375
-  //   },
-  //   helper,
-  // });
-  const renderInfo = code(data, {
+  const code = fs.readFileSync(
+    path.resolve(__dirname, '../src/index.js'),
+    'utf8'
+  );
+  const renderInfo = vm.run(code)(data, {
     prettier: prettier,
     _: _,
     responsive: {

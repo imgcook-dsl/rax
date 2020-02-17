@@ -183,7 +183,7 @@ function exportPage(schema, option) {
             const { params, content } = parseFunction(
               schema.dataSource.dataHandler
             );
-            methods.push(`dataHandler(${params}) {${content}}`);
+            methods.push(`const dataHandler = (${params}) => {${content}}`);
             init.push(`dataHandler()`);
           }
         }

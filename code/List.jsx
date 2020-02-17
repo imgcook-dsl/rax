@@ -8,34 +8,40 @@ import Text from 'rax-text';
 import styles from './List.css';
 
 export default memo(props => {
-  const [state, setState] = useState({ count: '21万观看', title: '跟着我走', favo: '13万' });
+  const [state, setState] = useState({ count: '2.1万观看', title: '跟着我走', favo: '1.3万' });
 
   // constructor
   useState(() => {
-    fetchJsonp();
-
-    console.log('123718723');
-    var a = 1;
+    fetchList();
+    dataHandler();
   });
 
   // componentDidMount
   useEffect(() => {
-    console.log(state.count);
     console.log('didMount');
   }, []);
 
-  function fetchJsonp() {
-    jsonp('http://ide.def.alibaba-inc.com/ide?id=4367&repo=page-project/rax-app-1', { body: { name: '111' } })
+  function fetchYouName() {
+    const a = '1';
+    return a + 10;
+  }
+  function fetchList() {
+    return jsonp('https://www.imgcook.com/editor#/?id=22228', { token: '123123', body: { id: 1 } })
       .then(response => response.json())
       .then((data, error) => {
+        data.msg = '123123';
         return data;
       })
       .catch(e => {
         console.log('error', e);
       });
   }
+  const dataHandler = dataMap => {
+    dataMap.id = '1111111';
+    return dataMap;
+  };
   return (
-    <View style={styles.block_3}>
+    <View style={styles.block_311}>
       <View style={styles.box}>
         <Image
           style={styles.layer}
@@ -46,7 +52,7 @@ export default memo(props => {
             <View style={styles.color} />
             <Text style={styles.liveBroadcast}>直播中</Text>
           </View>
-          {1 == 1 && <Text style={styles.wanguankan}>{state.count}</Text>}
+          {1 == 1 && <Text style={styles.wanguankan}>1.3万观看</Text>}
         </View>
         <View style={styles.bd}>
           <Text style={styles.title}>{state.title}</Text>
@@ -65,7 +71,7 @@ export default memo(props => {
                   source={{ uri: 'https://img.alicdn.com/tfs/TB1EgB1u1bviK0jSZFNXXaApXXa-32-26.png' }}
                 />
               </View>
-              <Text style={styles.wan}>{state.favo}</Text>
+              <Text style={styles.wan}>1.2万</Text>
             </View>
           </View>
         </View>

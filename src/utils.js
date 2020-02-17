@@ -11,6 +11,13 @@ const line2Hump = (str) => {
   return str;
 }
 
+const isEmptyObj = o => {
+  if (o !== null && Object.prototype.toString.call(o) === '[object Object]') {
+    return !Object.keys(o).length;
+  }
+  return false;
+};
+
 const toString = (value) => {
   if ({}.toString.call(value) === '[object Function]') {
     return value.toString();
@@ -282,9 +289,10 @@ const parseDataSource = (data, imports) => {
     }
   });
 
+  let comma = isEmptyObj(payload) ? '' : ',';
   // params parse should in string template
   if (params) {
-    payload = `${toString(payload).slice(0, -1)} body: ${
+    payload = `${toString(payload).slice(0, -1)} ${comma} body: ${
       isExpression(params) ? parseProps(params) : toString(params)
     }}`;
   } else {
@@ -292,7 +300,7 @@ const parseDataSource = (data, imports) => {
   }
 
   let result = `{
-  ${action}(${parseProps(uri)}, ${toString(payload)})
+  return ${action}(${parseProps(uri)}, ${toString(payload)})
     .then((response) => response.json())
 `;
 
