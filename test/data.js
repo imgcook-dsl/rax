@@ -116,6 +116,27 @@ module.exports = {
           height: 500
         }
       },
+      "smart": {
+        "layerProtocol": {
+          "component": {
+            "params": {
+              "width": "",
+              "height": "",
+              "autoPlay": false,
+              "showsPagination": true,
+              "paginationStyle": "",
+              "loop": true,
+              "index": 0,
+              "autoPlayInterval": 3000,
+              "onChange": function() {
+                
+              },
+              "direaction": "horizontal"
+            },
+            "package": "rax-scrollview"
+          }
+        }
+      },
       children: [
         {
           componentName: 'Div',

@@ -126,6 +126,8 @@ const parseProps = (value, isReactNode) => {
     return `(${params}) => {${content}}`;
   } else if (typeof value === 'object') {
     return `${JSON.stringify(value)}`;
+  } else {
+    return value;
   }
 }
 

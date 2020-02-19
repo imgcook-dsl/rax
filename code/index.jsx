@@ -5,7 +5,7 @@ import View from 'View';
 import PuiTab from 'PuiTab';
 import PuiCategorySelect from '@ali/puicom-rax-category-select';
 import Image from 'rax-image';
-import ScrollView from 'ScrollView';
+import ScrollView from 'rax-scrollview';
 import Text from 'rax-text';
 
 import { IndexProvider } from './context';
@@ -18,10 +18,10 @@ export default function Page() {
         <View>
           <PuiTab
             data={['Tab1', 'Tab2', 'Tab3', 'Tab4', 'Tab5', 'Tab6', 'Tab7', 'Tab8']}
-            isScroll={undefined}
-            width={undefined}
-            itemWidth={undefined}
-            defaultSelected={undefined}
+            isScroll={true}
+            width={600}
+            itemWidth={100}
+            defaultSelected={true}
             styles={{ container: { border: '1px solid #f8e71c' } }}
           />
         </View>
