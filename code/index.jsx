@@ -1,98 +1,56 @@
 'use strict';
 import { createElement, useState, useEffect } from 'rax';
-import jsonp from 'fetch-jsonp';
 import View from 'rax-view';
+import View from 'View';
+import PuiTab from 'PuiTab';
+import PuiCategorySelect from '@ali/puicom-rax-category-select';
 import Image from 'rax-image';
+import ScrollView from 'ScrollView';
 import Text from 'rax-text';
 
 import { IndexProvider } from './context';
 import styles from './index.css';
 
 export default function Page() {
-  const [state, setState] = useState({
-    count: '2.1万观看',
-    title: '跟着我走',
-    favo: '1.3万',
-    list: [{ name: '1' }, { name: '4' }, { name: '3' }]
-  });
-
-  // constructor
-  useState(() => {
-    fetchList();
-    dataHandler();
-  });
-
-  // componentDidMount
-  useEffect(() => {
-    console.log('didMount');
-  }, []);
-
-  function fetchYouName() {
-    const a = '1';
-    return a + 10;
-  }
-  function fetchList() {
-    return jsonp('https://www.imgcook.com/editor#/?id=22228', { token: '123123', body: { id: 1 } })
-      .then(response => response.json())
-      .then((data, error) => {
-        data.msg = '123123';
-        return data;
-      })
-      .catch(e => {
-        console.log('error', e);
-      });
-  }
-  const dataHandler = dataMap => {
-    dataMap.id = '1111111';
-    return dataMap;
-  };
   return (
     <IndexProvider>
-      <View style={styles.block_311} youName={'111'}>
-        {[{ name: '1' }, { name: '4' }, { name: '3' }].map((item, index) => {
-          return (
-            <View
-              key={index}
-              style={styles.box}
-              onClick={e => {
-                return '1111';
-              }}
-            >
-              <Image
-                style={styles.layer}
-                source={{ uri: 'https://img.alicdn.com/tfs/TB1GDkvvEY1gK0jSZFMXXaWcVXa-696-1032.png' }}
-              />
-              <View style={styles.hd}>
-                <View style={styles.container}>
-                  <View style={styles.color} />
-                  <Text style={styles.liveBroadcast}>直播中</Text>
-                </View>
-                {1 == 1 && <Text style={styles.wanguankan}>1.3万观看</Text>}
-              </View>
-              <View style={styles.bd}>
-                <Text style={styles.title}>{state.title}</Text>
-                <View style={styles.block_2}>
-                  <View style={styles.outer}>
-                    <Image
-                      style={styles.caipiao}
-                      source={{ uri: 'https://img.alicdn.com/tfs/TB1f6ozvxD1gK0jSZFyXXciOVXa-96-96.png' }}
-                    />
-                    <Text style={styles.info}>翡翠定制专家</Text>
-                  </View>
-                  <View style={styles.block}>
-                    <View style={styles.iconcollectionwhitWrap}>
-                      <Image
-                        style={styles.iconcollectionwhit}
-                        source={{ uri: 'https://img.alicdn.com/tfs/TB1EgB1u1bviK0jSZFNXXaApXXa-32-26.png' }}
-                      />
-                    </View>
-                    <Text style={styles.wan}>1.2万</Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          );
-        })}
+      <View>
+        <View>
+          <PuiTab
+            data={['Tab1', 'Tab2', 'Tab3', 'Tab4', 'Tab5', 'Tab6', 'Tab7', 'Tab8']}
+            isScroll={undefined}
+            width={undefined}
+            itemWidth={undefined}
+            defaultSelected={undefined}
+            styles={{ container: { border: '1px solid #f8e71c' } }}
+          />
+        </View>
+        <PuiCategorySelect
+          theme={'zc'}
+          filterKey={'cateId11'}
+          defaultValue={'0'}
+          panelAttributes={{ shouldInitialRender: true }}
+          dataSource={[
+            { value: '1', name: '全部1', count: 10, _key: 1 },
+            { value: '2', name: '全部2', count: 10, _key: 2 },
+            { value: '3', name: '全部3', count: 10, _key: 3 },
+            { value: '4', name: '全部4', count: 10, _key: 4 },
+            { value: '5', name: '全部5', count: 10, _key: 5 }
+          ]}
+          filterValue={'4'}
+        />
+        <Image
+          source={{ uri: 'https://img.alicdn.com/tfs/TB16LH0dAT2gK0jSZPcXXcKkpXa-1252-942.png' }}
+          resizeMode={'contain'}
+          quality={'high'}
+        />
+        <ScrollView>
+          <View>
+            <Text numberOfLines={'1'}></Text>
+          </View>
+          <View />
+          <View />
+        </ScrollView>
       </View>
     </IndexProvider>
   );

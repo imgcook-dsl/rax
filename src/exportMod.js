@@ -1,5 +1,6 @@
 const {
   toString,
+  getValueByPath,
   parseLoop,
   parseStyle,
   parseFunction,
@@ -100,7 +101,8 @@ function exportMod(schema, option) {
         }
         break;
       default:
-        const singleImport = `import ${componentName} from '${componentName}'`;
+        let packageName = getValueByPath(schema, 'smart.layerProtocol.component.package') || componentName;
+        const singleImport = `import ${componentName} from '${packageName}'`;
         if (imports.indexOf(singleImport) === -1) {
           imports.push(singleImport);
         }
