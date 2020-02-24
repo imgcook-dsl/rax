@@ -1,12 +1,14 @@
 const { exportMod, exportPage } = require('./exportCode');
-const { line2Hump } = require('./utils');
+const { line2Hump, transComponentsMap } = require('./utils');
 
 module.exports = function(schema, option) {
   // get blocks json
   const blocks = [];
   const scale = 750 / (option.responsive && option.responsive.width || 750);
+  const componentsMap = transComponentsMap(option.componentsMap);
 
   option.scale = scale;
+  option.componentsMap = componentsMap;
 
   function schemaHandler(option) {
     const { json, scale } = option;

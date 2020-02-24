@@ -18,23 +18,18 @@ const isEmptyObj = o => {
   return false;
 };
 
-const getValueByPath = (o, s, def) => {
-  if (!o) o = {};
-  if (!s) s = '';
-  if (!def) def = '';
-  s = s.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
-  s = s.replace(/^\./, ''); // strip a leading dot
-  var a = s.split('.');
-  for (var i = 0, n = a.length; i < n; ++i) {
-    var k = a[i];
-    if (k in o) {
-      o = o[k];
-    } else {
-      return def;
-    }
+const transComponentsMap = (compsMap = []) => {
+  if (!Array.isArray(compsMap)) {
+    return [];
   }
-  return o;
-}
+  return compsMap.reduce((obj, comp) => {
+    const componentName = comp.name;
+    if (!obj[componentName]) {
+      obj[componentName] = comp;
+    }
+    return obj;
+  }, {});
+};
 
 const toString = (value) => {
   if ({}.toString.call(value) === '[object Function]') {
@@ -334,7 +329,7 @@ const parseDataSource = (data, imports) => {
 module.exports = {
   isExpression,
   toString,
-  getValueByPath,
+  transComponentsMap,
   line2Hump,
   toUpperCaseStart,
   parseStyle,

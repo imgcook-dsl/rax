@@ -1,6 +1,5 @@
 const {
   toString,
-  getValueByPath,
   parseLoop,
   parseStyle,
   parseFunction,
@@ -15,8 +14,7 @@ const {
 } = require('./utils');
 
 function exportMod(schema, option) {
-  
-  const { prettier, scale } = option;
+  const { prettier, scale, componentsMap } = option;
 
   const fileName = schema.fileName;
 
@@ -101,7 +99,8 @@ function exportMod(schema, option) {
         }
         break;
       default:
-        let packageName = getValueByPath(schema, 'smart.layerProtocol.component.package') || componentName;
+        let componentMap = componentsMap[schema.componentName] || {};
+        let packageName = componentMap.package || componentName;
         const singleImport = `import ${componentName} from '${packageName}'`;
         if (imports.indexOf(singleImport) === -1) {
           imports.push(singleImport);

@@ -33,25 +33,6 @@ module.exports = {
     },
     {
       componentName: 'PuiCategorySelect',
-      smart: {
-        layerProtocol: {
-          component: {
-            params: {
-              width: '',
-              height: '',
-              autoPlay: false,
-              showsPagination: true,
-              paginationStyle: '',
-              loop: true,
-              index: 0,
-              autoPlayInterval: 3000,
-              onChange: function() {},
-              direaction: 'horizontal'
-            },
-            package: '@ali/puicom-rax-category-select'
-          }
-        }
-      },
       props: {
         theme: 'zc',
         filterKey: 'cateId11',
@@ -114,27 +95,6 @@ module.exports = {
         style: {
           width: 500,
           height: 500
-        }
-      },
-      "smart": {
-        "layerProtocol": {
-          "component": {
-            "params": {
-              "width": "",
-              "height": "",
-              "autoPlay": false,
-              "showsPagination": true,
-              "paginationStyle": "",
-              "loop": true,
-              "index": 0,
-              "autoPlayInterval": 3000,
-              "onChange": function() {
-                
-              },
-              "direaction": "horizontal"
-            },
-            "package": "rax-scrollview"
-          }
         }
       },
       children: [

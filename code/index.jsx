@@ -2,10 +2,10 @@
 import { createElement, useState, useEffect } from 'rax';
 import View from 'rax-view';
 import View from 'View';
-import PuiTab from 'PuiTab';
+import PuiTab from '@ali/puicom-rax-tab';
 import PuiCategorySelect from '@ali/puicom-rax-category-select';
 import Image from 'rax-image';
-import ScrollView from 'rax-scrollview';
+import ScrollView from 'ScrollView';
 import Text from 'rax-text';
 
 import { IndexProvider } from './context';
