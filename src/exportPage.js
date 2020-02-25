@@ -77,12 +77,13 @@ function exportPage(schema, option) {
         if (imports.indexOf(`import Image from 'rax-image'`) === -1) {
           imports.push(`import Image from 'rax-image'`);
         }
-        if (schema.props.src) {
-          
+        if (schema.props.source && schema.props.source.uri) {
+          xml = `<Image${classString}${props} />`;
+        } else {
+          let source = parseProps(schema.props.src);
+          source = (source && `source={{uri: ${source}}}`) || '';
+          xml = `<Image${classString}${props} ${source} />`;
         }
-        let source = parseProps(schema.props.src);
-        source = source && `source={{uri: ${source}}}` || '';
-        xml = `<Image${classString}${props} ${source} />`;
         break;
       case 'div':
       case 'page':
