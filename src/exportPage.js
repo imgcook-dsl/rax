@@ -86,6 +86,7 @@ function exportPage(schema, option) {
         }
         break;
       case 'div':
+      case 'view':
       case 'page':
       case 'block':
       case 'component':
