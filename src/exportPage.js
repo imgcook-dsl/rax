@@ -10,7 +10,8 @@ const {
   parseCondition,
   generateCSS,
   parseDataSource,
-  line2Hump
+  line2Hump,
+  getText,
 } = require('./utils');
 
 function exportPage(schema, option) {
@@ -63,7 +64,16 @@ function exportPage(schema, option) {
       if (['className', 'style', 'text', 'src', 'key'].indexOf(key) === -1) {
         props += ` ${key}={${parseProps(schema.props[key])}}`;
       }
+      // 无障碍能力
+      if (['onClick'].indexOf(key) === 0) {
+        props += ` accessible={true} aria-label={\`${getText(schema)}\`}`;
+      }
     });
+
+    // 无障碍能力
+    if (type === 'link') {
+      props += ` accessible={true} aria-label={\`${getText(schema)}\`}`;
+    }
 
     switch (type) {
       case 'text':
