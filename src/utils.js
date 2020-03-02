@@ -1,15 +1,15 @@
-const isExpression = (value) => {
+const isExpression = value => {
   return /^\{\{.*\}\}$/.test(value);
-}
+};
 
 // eg: hello_world => HelloWorld
-const line2Hump = (str) => {
+const line2Hump = str => {
   str = str.replace(/[_|-](\w)/g, (all, letter) => {
     return letter.toUpperCase();
   });
   str = str.charAt(0).toUpperCase() + str.slice(1);
   return str;
-}
+};
 
 const isEmptyObj = o => {
   if (o !== null && Object.prototype.toString.call(o) === '[object Object]') {
@@ -31,7 +31,7 @@ const transComponentsMap = (compsMap = []) => {
   }, {});
 };
 
-const toString = (value) => {
+const toString = value => {
   if ({}.toString.call(value) === '[object Function]') {
     return value.toString();
   }
@@ -45,13 +45,13 @@ const toString = (value) => {
       } else {
         return value;
       }
-    })
+    });
   }
 
   return String(value);
 };
 
-const toUpperCaseStart = (value) => {
+const toUpperCaseStart = value => {
   return value.charAt(0).toUpperCase() + value.slice(1);
 };
 
@@ -87,18 +87,21 @@ const parseStyle = (style, scale) => {
   }
 
   return style;
-}
+};
 
 // parse function, return params and content
-const parseFunction = (func) => {
+const parseFunction = func => {
   const funcString = func.toString();
   const params = funcString.match(/\([^\(\)]*\)/)[0].slice(1, -1);
-  const content = funcString.slice(funcString.indexOf('{') + 1, funcString.lastIndexOf('}'));
+  const content = funcString.slice(
+    funcString.indexOf('{') + 1,
+    funcString.lastIndexOf('}')
+  );
   return {
     params,
     content
   };
-}
+};
 
 // parse layer props(static values or expression)
 const parseProps = (value, isReactNode) => {
@@ -117,24 +120,24 @@ const parseProps = (value, isReactNode) => {
       return `'${value}'`;
     }
   } else if (typeof value === 'function') {
-    const {params, content} = parseFunction(value);
+    const { params, content } = parseFunction(value);
     return `(${params}) => {${content}}`;
   } else if (typeof value === 'object') {
     return `${JSON.stringify(value)}`;
   } else {
     return value;
   }
-}
+};
 
 // parse condition: whether render the layer
 const parseCondition = (condition, render) => {
   if (typeof condition === 'boolean') {
-    return `${condition} && ${render}`
+    return `${condition} && ${render}`;
   } else if (typeof condition === 'string') {
     condition = condition.replace(/this\./, '');
-    return `${condition.slice(2, -2)} && ${render}`
+    return `${condition.slice(2, -2)} && ${render}`;
   }
-}
+};
 
 // flexDirection -> flex-direction
 const parseCamelToLine = string => {
@@ -173,7 +176,9 @@ const parseLoop = (loop, loopArg, render, states) => {
 
   // add loop key
   const tagEnd = render.match(/^<.+?\s/)[0].length;
-  render = `${render.slice(0, tagEnd)} key={${loopArgIndex}}${render.slice(tagEnd)}`;
+  render = `${render.slice(0, tagEnd)} key={${loopArgIndex}}${render.slice(
+    tagEnd
+  )}`;
 
   // remove `this`
   const re = new RegExp(`this.${loopArgItem}`, 'g');
@@ -192,7 +197,7 @@ const parseLoop = (loop, loopArg, render, states) => {
 };
 
 // parse state
-const parseState = (states) => {
+const parseState = states => {
   let stateName = 'state';
   // hooks state
   return `const [${stateName}, set${toUpperCaseStart(
@@ -201,7 +206,7 @@ const parseState = (states) => {
 };
 
 // replace state
-const replaceState = (render) => {
+const replaceState = render => {
   // remove `this`
   let stateName = 'state';
   const re = new RegExp(`this.state`, 'g');
@@ -212,42 +217,42 @@ const replaceState = (render) => {
 const parseLifeCycles = (schema, init) => {
   let lifeCycles = [];
   if (!schema.lifeCycles['_constructor'] && init) {
-    schema.lifeCycles['_constructor'] = `function _constructor() {}`
+    schema.lifeCycles['_constructor'] = `function _constructor() {}`;
   }
 
   Object.keys(schema.lifeCycles).forEach(name => {
     let { params, content } = parseFunction(schema.lifeCycles[name]);
     content = replaceState(content);
-    switch(name){
-      case '_constructor':{
+    switch (name) {
+      case '_constructor': {
         init.push(content);
         lifeCycles.unshift(`
           // constructor
           useState(()=>{
             ${init.join('\n')}
           })
-        `)
+        `);
         break;
       }
-      case 'componentDidMount':{
+      case 'componentDidMount': {
         lifeCycles.push(`
           // componentDidMount
           useEffect(()=>{
             ${content}
           }, [])
-        `)
+        `);
         break;
       }
-      case 'componentDidUpdate':{
+      case 'componentDidUpdate': {
         lifeCycles.push(`
           // componentDidUpdate
           useEffect(()=>{
             ${content}
           })
-        `)
+        `);
         break;
       }
-      case 'componentWillUnMount':{
+      case 'componentWillUnMount': {
         lifeCycles.push(`
           // componentWillUnMount
           useEffect(()=>{
@@ -255,14 +260,13 @@ const parseLifeCycles = (schema, init) => {
               ${content}
             }
           }, [])
-        `)
+        `);
         break;
       }
     }
   });
   return lifeCycles;
 };
-
 
 // parse async dataSource
 const parseDataSource = (data, imports) => {
@@ -322,8 +326,30 @@ const parseDataSource = (data, imports) => {
 
   return {
     value: `function ${name}() ${result}`,
-    imports,
+    imports
   };
+};
+
+// get children text
+const getText = schema => {
+  let text = '';
+
+  const getChildrenText = schema => {
+    const type = schema.componentName.toLowerCase();
+    if (type === 'text') {
+      text += parseProps(schema.props.text || schema.text, true).replace(/\{/g, '${');
+    }
+
+    schema.children &&
+      Array.isArray(schema.children) &&
+      schema.children.map(item => {
+        getChildrenText(item);
+      });
+  };
+
+  getChildrenText(schema);
+
+  return text;
 };
 
 module.exports = {
@@ -341,5 +367,6 @@ module.exports = {
   parseState,
   parseLifeCycles,
   replaceState,
-  generateCSS
-}
+  generateCSS,
+  getText
+};
