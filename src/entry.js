@@ -15,7 +15,7 @@ module.exports = function(schema, option) {
     switch (json.componentName.toLowerCase()) {
       case 'block':
         // parse fileName
-        json.fileName = json.fileName || json.id;
+        json.fileName = json.fileName || `block_${json.id.slice(0, 6)}`;
         if (
           json.smart &&
           json.smart.layerProtocol &&
@@ -56,7 +56,6 @@ module.exports = function(schema, option) {
       const result = exportMod(block, option);
       panelDisplay = panelDisplay.concat(result);
     });
-
   // export Page code
   const result = exportPage(schema, option);
   panelDisplay = panelDisplay.concat(result);
