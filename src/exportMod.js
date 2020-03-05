@@ -65,7 +65,7 @@ function exportMod(schema, option) {
       }
       // 无障碍能力
       if (['onClick'].indexOf(key) === 0) {
-        props += ` accessible={true} aria-label={\`${getText(schema)}\`}`;
+        props += ` accessible={true} role="link" aria-label={\`${getText(schema)}\`}`;
       }
     });
 
