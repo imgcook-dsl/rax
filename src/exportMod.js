@@ -70,7 +70,7 @@ function exportMod(schema, option) {
     });
 
     // 无障碍能力
-    if (type === 'link') {
+    if (type === 'link' && !props.match('accessible')) {
       props += ` accessible={true} aria-label={\`${getText(schema)}\`}`;
     }
 
