@@ -28,18 +28,20 @@ co(function*() {
       viewportWidth: 375
     },
     helper,
-    componentsMap: [
-      {
-        name: 'PuiTab',
-        package: '@ali/puicom-rax-tab',
-        version: '1.0.0',
-      },
-      {
-        name: 'PuiCategorySelect',
-        package: '@ali/puicom-rax-category-select',
-        version: '1.0.0',
-      },
-    ]
+    componentsMap: {
+      list: [
+        {
+          name: 'PuiTab',
+          package: '@ali/puicom-rax-tab',
+          version: '1.0.0',
+        },
+        {
+          name: 'PuiCategorySelect',
+          package: '@ali/puicom-rax-category-select',
+          version: '1.0.0',
+        },
+      ]
+    }
   });
 
   if (renderInfo.noTemplate) {

@@ -1,7 +1,7 @@
 'use strict';
 import { createElement, useState, useEffect } from 'rax';
 import View from 'rax-view';
-import View from 'View';
+import PuiTab from '@ali/puicom-rax-tab';
 import Image from 'rax-image';
 import Text from 'rax-text';
 
@@ -12,13 +12,13 @@ export default function Page() {
   return (
     <IndexProvider>
       <View style={styles.page}>
-        <View style={styles.primary}>
+        <PuiTab style={styles.primary}>
           <View style={styles.color} />
           <Image
             style={styles.pic}
             source={{ uri: 'https://img.alicdn.com/tfs/TB1rVRXwq61gK0jSZFlXXXDKFXa-300-300.png' }}
           />
-        </View>
+        </PuiTab>
         <View style={styles.side}>
           <Text style={styles.txt}>秋冬款外套</Text>
           <View style={styles.priceWrap}>
