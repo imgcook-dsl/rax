@@ -13,7 +13,7 @@ module.exports = {
     "className": "page"
   },
   "children": [{
-    "componentName": "View",
+    "componentName": "PuiTab",
     "id": "Block_261978",
     "rect": {
       "x": 0,

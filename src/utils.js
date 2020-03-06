@@ -18,11 +18,12 @@ const isEmptyObj = o => {
   return false;
 };
 
-const transComponentsMap = (compsMap = []) => {
-  if (!Array.isArray(compsMap)) {
+const transComponentsMap = (compsMap = {}) => {
+  if (!compsMap || !Array.isArray(compsMap.list)) {
     return [];
   }
-  return compsMap.reduce((obj, comp) => {
+  const list = compsMap.list;
+  return list.reduce((obj, comp) => {
     const componentName = comp.name;
     if (!obj[componentName]) {
       obj[componentName] = comp;
