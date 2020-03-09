@@ -275,17 +275,33 @@ const parseLifeCycles = (schema, init) => {
   return lifeCycles;
 };
 
+const existImport = (imports, singleImport) => {
+  let exist = false;
+  imports.forEach(item => {
+    if (item.import === singleImport) {
+      exist = true;
+    }
+  });
+  return exist;
+};
+
 // parse async dataSource
 const parseDataSource = (data, imports) => {
   const name = data.id;
   const { uri, method, params } = data.options;
   const action = data.type;
   let payload = {};
+  let singleImport;
 
   switch (action) {
     case 'fetch':
-      if (imports.indexOf(`import {fetch} from whatwg-fetch`) === -1) {
-        imports.push(`import {fetch} from 'whatwg-fetch'`);
+      singleImport = `import {fetch} from whatwg-fetch`;
+      if (!existImport(imports, singleImport)) {
+        imports.push({
+          import: singleImport,
+          package: 'whatwg-fetch',
+          version: '^3.0.0'
+        });
       }
       payload = {
         method: method
@@ -293,8 +309,13 @@ const parseDataSource = (data, imports) => {
 
       break;
     case 'jsonp':
-      if (imports.indexOf(`import {fetchJsonp} from fetch-jsonp`) === -1) {
-        imports.push(`import jsonp from 'fetch-jsonp'`);
+      singleImport = `import {fetchJsonp} from fetch-jsonp`;
+      if (!existImport(imports, singleImport)) {
+        imports.push({
+          import: singleImport,
+          package: 'fetch-jsonp',
+          version: '^1.1.3'
+        });
       }
       break;
   }
@@ -364,6 +385,7 @@ module.exports = {
   toString,
   transComponentsMap,
   line2Hump,
+  existImport,
   toUpperCaseStart,
   parseStyle,
   parseDataSource,

@@ -1,5 +1,6 @@
 const {
   toString,
+  existImport,
   parseLoop,
   parseStyle,
   parseFunction,
@@ -50,8 +51,12 @@ function exportPage(schema, option) {
     let componentMap = componentsMap[componentName] || {};
     let packageName = componentMap.packageName || componentName;
     const singleImport = `import ${componentName} from '${packageName}'`;
-    if (imports.indexOf(singleImport) === -1) {
-      imports.push(singleImport);
+    if (!existImport(imports, singleImport)) {
+      imports.push({
+        import: singleImport,
+        package: packageName,
+        version: componentMap.dependenceVersion || '*'
+      });
     }
   };
 
@@ -216,9 +221,9 @@ function exportPage(schema, option) {
           }
         });
         result += `<${line2Hump(blockName)} ${props} />`;
-        importMods.push(
-          `import ${line2Hump(blockName)} from './${blockName}';`
-        );
+        importMods.push({
+          import: `import ${line2Hump(blockName)} from './${blockName}';`,
+        });
       } else {
         result += generateRender(schema);
       }
@@ -288,8 +293,8 @@ function exportPage(schema, option) {
     `
     'use strict';
     import { createElement, useState, useEffect } from 'rax';
-    ${imports.join('\n')}
-    ${importMods.join('\n')}
+    ${imports.map(i => i.import).join('\n')}
+    ${importMods.map(i => i.import).join('\n')}
     import { ${
       hasDispatch ? 'IndexContext, IndexProvider' : 'IndexProvider'
     } } from './context';
