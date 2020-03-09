@@ -46,6 +46,15 @@ function exportPage(schema, option) {
   // init
   const init = [];
 
+  const collectImports = componentName => {
+    let componentMap = componentsMap[componentName] || {};
+    let packageName = componentMap.packageName || componentName;
+    const singleImport = `import ${componentName} from '${packageName}'`;
+    if (imports.indexOf(singleImport) === -1) {
+      imports.push(singleImport);
+    }
+  };
+
   // generate render xml
   const generateRender = schema => {
     const componentName = schema.componentName;
@@ -77,16 +86,12 @@ function exportPage(schema, option) {
 
     switch (type) {
       case 'text':
-        if (imports.indexOf(`import Text from 'rax-text'`) === -1) {
-          imports.push(`import Text from 'rax-text'`);
-        }
+        collectImports('Text');
         const innerText = parseProps(schema.props.text || schema.text, true);
         xml = `<Text${classString}${props}>${innerText || ''}</Text>`;
         break;
       case 'image':
-        if (imports.indexOf(`import Image from 'rax-image'`) === -1) {
-          imports.push(`import Image from 'rax-image'`);
-        }
+        collectImports('Image');
         if (schema.props.source && schema.props.source.uri) {
           xml = `<Image${classString}${props} />`;
         } else {
@@ -100,9 +105,7 @@ function exportPage(schema, option) {
       case 'page':
       case 'block':
       case 'component':
-        if (imports.indexOf(`import View from 'rax-view'`) === -1) {
-          imports.push(`import View from 'rax-view'`);
-        }
+        collectImports('View');
         if (schema.children && schema.children.length) {
           xml = `<View${classString}${props}>${transform(
             schema.children
@@ -112,12 +115,7 @@ function exportPage(schema, option) {
         }
         break;
       default:
-        let componentMap = componentsMap[schema.componentName] || {};
-        let packageName = componentMap.package || componentName;
-        const singleImport = `import ${componentName} from '${packageName}'`;
-        if (imports.indexOf(singleImport) === -1) {
-          imports.push(singleImport);
-        }
+        collectImports(schema.componentName);
         if (
           schema.children &&
           schema.children.length &&

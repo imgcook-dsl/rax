@@ -26,6 +26,12 @@ const transComponentsMap = (compsMap = {}) => {
   return list.reduce((obj, comp) => {
     const componentName = comp.name;
     if (!obj[componentName]) {
+      try {
+        let dependence = JSON.parse(comp.dependence);
+        if (dependence) {
+          comp.packageName = dependence.package;
+        }
+      } catch (e) {}
       obj[componentName] = comp;
     }
     return obj;
