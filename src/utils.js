@@ -295,7 +295,7 @@ const parseDataSource = (data, imports) => {
 
   switch (action) {
     case 'fetch':
-      singleImport = `import {fetch} from whatwg-fetch`;
+      singleImport = `import {fetch} from 'whatwg-fetch';`;
       if (!existImport(imports, singleImport)) {
         imports.push({
           import: singleImport,
@@ -309,7 +309,7 @@ const parseDataSource = (data, imports) => {
 
       break;
     case 'jsonp':
-      singleImport = `import {fetchJsonp} from fetch-jsonp`;
+      singleImport = `import {fetchJsonp} from 'fetch-jsonp';`;
       if (!existImport(imports, singleImport)) {
         imports.push({
           import: singleImport,
