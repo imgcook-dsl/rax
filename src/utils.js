@@ -31,6 +31,12 @@ const transComponentsMap = (compsMap = {}) => {
         if (dependence) {
           comp.packageName = dependence.package;
         }
+        if (!comp.dependenceVersion) {
+          comp.dependenceVersion = '*';
+        }
+        if (/^\d/.test(comp.dependenceVersion)) {
+          comp.dependenceVersion = '^' + comp.dependenceVersion;
+        }
       } catch (e) {}
       obj[componentName] = comp;
     }

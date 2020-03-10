@@ -17,6 +17,7 @@ export default function Page() {
           <Image
             style={styles.pic}
             source={{ uri: 'https://img.alicdn.com/tfs/TB1rVRXwq61gK0jSZFlXXXDKFXa-300-300.png' }}
+            aria-hidden={true}
           />
         </PuiTab>
         <View style={styles.side}>
