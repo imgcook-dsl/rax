@@ -99,6 +99,9 @@ function exportMod(schema, option) {
         break;
       case 'image':
         collectImports('Image');
+        if (!props.match('onClick')) {
+          props += ' aria-hidden={true}';
+        }
         if (schema.props.source && schema.props.source.uri) {
           xml = `<Image${classString}${props} />`;
         } else {
