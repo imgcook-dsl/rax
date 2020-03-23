@@ -50,6 +50,9 @@ function exportPage(schema, option) {
   const collectImports = componentName => {
     let componentMap = componentsMap[componentName] || {};
     let packageName = componentMap.packageName || componentName;
+    if (packageName && ['view', 'image', 'text'].indexOf(packageName.toLowerCase()) > 0) {
+      packageName = `rax-${packageName.toLowerCase()}`;
+    }
     const singleImport = `import ${componentName} from '${packageName}'`;
     if (!existImport(imports, singleImport)) {
       imports.push({
