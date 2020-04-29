@@ -27,7 +27,7 @@ module.exports = function(schema, option) {
             ''
           );
         }
-        json.fileName = line2Hump(json.fileName);
+        json.fileName = json.fileName === 'index' ? json.fileName : line2Hump(json.fileName);
         blocks.push(json);
         break;
       default:
