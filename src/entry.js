@@ -57,8 +57,10 @@ module.exports = function(schema, option) {
       panelDisplay = panelDisplay.concat(result);
     });
   // export Page code
-  const result = exportPage(schema, option);
-  panelDisplay = panelDisplay.concat(result);
+  if (schema.componentName === 'Page') {
+    const result = exportPage(schema, option);
+    panelDisplay = panelDisplay.concat(result);
+  }
 
   return {
     panelDisplay,
