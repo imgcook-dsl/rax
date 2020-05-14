@@ -81,6 +81,12 @@ function exportMod(schema, option) {
       if (['className', 'style', 'text', 'src', 'key'].indexOf(key) === -1) {
         props += ` ${key}={${parseProps(schema.props[key])}}`;
       }
+
+      // fix attr when type is not text
+      if (type !== 'text' && ['text'].includes(key)) {
+        props += ` ${key}={${parseProps(schema.props[key])}}`;
+      }
+
       // 无障碍能力
       if (['onClick'].indexOf(key) === 0) {
         props += ` accessible={true} role="link" aria-label={\`${getText(schema)}\`}`;
