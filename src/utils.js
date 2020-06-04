@@ -94,7 +94,7 @@ const parseStyle = (style, scale) => {
       case 'borderTopRightRadius':
       case 'borderTopLeftRadius':
       case 'borderRadius':
-        style[key] = parseInt(style[key]) * scale + 'rpx';
+        style[key] = parseInt(style[key]) * scale;
         break;
     }
   }
