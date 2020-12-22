@@ -127,11 +127,11 @@ function exportMod(schema, option) {
       case 'component':
         collectImports('View');
         if (schema.children && schema.children.length) {
-          xml = `<View${classString}>${transform(
+          xml = `<View${classString}${props}>${transform(
             schema.children
           )}</View>`;
         } else {
-          xml = `<View${classString} />`;
+          xml = `<View${classString}${props} />`;
         }
         break;
       default:
