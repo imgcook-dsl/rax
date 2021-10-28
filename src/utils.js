@@ -284,7 +284,7 @@ const parseLifeCycles = (schema, init) => {
 const existImport = (imports, singleImport) => {
   let exist = false;
   imports.forEach(item => {
-    if (item.import === singleImport) {
+    if (item._import === singleImport) {
       exist = true;
     }
   });
@@ -304,7 +304,7 @@ const parseDataSource = (data, imports) => {
       singleImport = `import {fetch} from 'whatwg-fetch';`;
       if (!existImport(imports, singleImport)) {
         imports.push({
-          import: singleImport,
+          _import: singleImport,
           package: 'whatwg-fetch',
           version: '^3.0.0'
         });
@@ -318,7 +318,7 @@ const parseDataSource = (data, imports) => {
       singleImport = `import {fetchJsonp} from 'fetch-jsonp';`;
       if (!existImport(imports, singleImport)) {
         imports.push({
-          import: singleImport,
+          _import: singleImport,
           package: 'fetch-jsonp',
           version: '^1.1.3'
         });

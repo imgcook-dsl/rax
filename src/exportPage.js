@@ -56,7 +56,7 @@ function exportPage(schema, option) {
     const singleImport = `import ${componentName} from '${packageName}'`;
     if (!existImport(imports, singleImport)) {
       imports.push({
-        import: singleImport,
+        _import: singleImport,
         package: packageName,
         version: componentMap.dependenceVersion || '*'
       });
@@ -234,7 +234,7 @@ function exportPage(schema, option) {
         });
         result += `<${line2Hump(blockName)} ${props} />`;
         importMods.push({
-          import: `import ${line2Hump(blockName)} from './${blockName}';`,
+          _import: `import ${line2Hump(blockName)} from './${blockName}';`,
         });
       } else {
         result += generateRender(schema);
@@ -305,8 +305,8 @@ function exportPage(schema, option) {
     `
     'use strict';
     import { createElement, useState, useEffect } from 'rax';
-    ${imports.map(i => i.import).join('\n')}
-    ${importMods.map(i => i.import).join('\n')}
+    ${imports.map(i => i._import).join('\n')}
+    ${importMods.map(i => i._import).join('\n')}
     import { ${
       hasDispatch ? 'IndexContext, IndexProvider' : 'IndexProvider'
     } } from './context';

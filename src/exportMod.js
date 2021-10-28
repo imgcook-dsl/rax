@@ -56,7 +56,7 @@ function exportMod(schema, option) {
     const singleImport = `import ${componentName} from '${packageName}'`;
     if (!existImport(imports, singleImport)) {
       imports.push({
-        import: singleImport,
+        _import: singleImport,
         package: packageName,
         version: componentMap.dependenceVersion || '*'
       });
@@ -239,7 +239,7 @@ function exportMod(schema, option) {
         result += `<${line2Hump(blockName)} ${props} />`;
 
         importMods.push({
-          import: `import ${line2Hump(blockName)} from '../${blockName}';`,
+          _import: `import ${line2Hump(blockName)} from '../${blockName}';`,
         });
       } else {
         result += generateRender(schema);
@@ -274,8 +274,8 @@ function exportMod(schema, option) {
     `
     'use strict';
     import { createElement, useState, useEffect, memo } from 'rax';
-    ${imports.map(i => i.import).join('\n')}
-    ${importMods.map(i => i.import).join('\n')}
+    ${imports.map(i => i._import).join('\n')}
+    ${importMods.map(i => i._import).join('\n')}
     ${hasDispatch ? "import { IndexContext } from '../../context';" : ''}
 
     import styles from './${fileName}.css';
