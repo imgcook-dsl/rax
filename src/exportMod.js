@@ -68,7 +68,7 @@ function exportMod(schema, option) {
     const componentName = schema.componentName;
     const type = schema.componentName.toLowerCase();
     const className = schema.props && schema.props.className;
-    const classString = className ? ` style={styles.${className}}` : '';
+    const classString = className ? ` style={styles["${className}"]}` : '';
 
     if (className) {
       style[className] = parseStyle(schema.props.style, scale);
