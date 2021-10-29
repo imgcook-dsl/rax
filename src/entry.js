@@ -1,5 +1,5 @@
 const { exportMod, exportPage } = require('./exportCode');
-const { line2Hump, transComponentsMap } = require('./utils');
+const { line2Hump, transComponentsMap, formatSchema } = require('./utils');
 
 module.exports = function(schema, option) {
   // get blocks json
@@ -10,9 +10,13 @@ module.exports = function(schema, option) {
   option.scale = scale;
   option.componentsMap = componentsMap;
 
+
   function schemaHandler(option) {
     const { json, scale } = option;
     switch (json.componentName.toLowerCase()) {
+      case 'page':
+        json.fileName = json.fileName || `page_${json.id.slice(0, 6)}`;
+        break;
       case 'block':
         // parse fileName
         json.fileName = json.fileName || `block_${json.id.slice(0, 6)}`;
@@ -43,6 +47,8 @@ module.exports = function(schema, option) {
     }
   }
 
+  // clear schema
+  formatSchema(schema)
   // invoke
   schemaHandler({
     json: schema,
@@ -51,6 +57,9 @@ module.exports = function(schema, option) {
 
   // export module code
   let panelDisplay = [];
+
+  option.blocksCount =  blocks.length;
+
   blocks.length > 0 &&
     blocks.forEach(block => {
       const result = exportMod(block, option);

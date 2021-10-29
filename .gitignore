@@ -4,3 +4,5 @@ codeExample
 package-lock.json
 testSchema.*
 .vscode
+.demo
+.demo/node_modules

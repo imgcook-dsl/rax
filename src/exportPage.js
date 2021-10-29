@@ -71,7 +71,7 @@ function exportPage(schema, option) {
     const classString = className ? ` style={styles.${className}}` : '';
 
     if (className) {
-      style[className] = parseStyle(schema.props.style, scale);
+      style[className] = parseStyle(schema.props.style, scale, option);
     }
 
     let xml;

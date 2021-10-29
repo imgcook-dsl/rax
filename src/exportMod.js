@@ -1,6 +1,7 @@
 const {
   toString,
   existImport,
+  getGlobalClassNames,
   parseLoop,
   parseStyle,
   parseFunction,
@@ -11,20 +12,36 @@ const {
   parseCondition,
   generateCSS,
   parseDataSource,
+  genStyleCode,
   line2Hump,
-  getText
+  getText,
 } = require('./utils');
 
 function exportMod(schema, option) {
-  const { prettier, scale, componentsMap } = option;
+  const { prettier, scale, componentsMap, folder, blocksCount } = option;
 
+  const imgcookConfig = Object.assign(
+    {},
+    option.imgcookConfig,
+    schema.imgcookConfig
+  );
+
+  
+  const isExportGlobalFile = imgcookConfig.globalCss && blocksCount == 1;
   const fileName = schema.fileName;
+
+  const folderName = blocksCount == 1 ? '' : schema.fileName;
+  const filePathName = 'index';
+  const globalCss = schema.css || '';
 
   // imports
   let imports = [];
 
   // imports mods
   let importMods = [];
+
+  // import css
+  let importStyles = [];
 
   // inline style
   const style = {};
@@ -47,10 +64,24 @@ function exportMod(schema, option) {
   // init
   const init = [];
 
-  const collectImports = componentName => {
+  if(isExportGlobalFile){
+    importStyles.push(`import './global.css';`) ;
+  }
+  if (imgcookConfig.exportClassName) {
+    importStyles.push(`import './${filePathName}.module.css';`) ;
+  } else {
+    importStyles.push(`import styles from './${filePathName}.module.css';`) ;
+  }
+
+  const collectImports = (componentName) => {
     let componentMap = componentsMap[componentName] || {};
-    let packageName = componentMap.package || componentMap.packageName || componentName;
-    if (packageName && ['view', 'image', 'text', 'picture'].indexOf(packageName.toLowerCase()) >= 0) {
+    let packageName =
+      componentMap.package || componentMap.packageName || componentName;
+    if (
+      packageName &&
+      ['view', 'image', 'text', 'picture'].indexOf(packageName.toLowerCase()) >=
+        0
+    ) {
       packageName = `rax-${packageName.toLowerCase()}`;
     }
     const singleImport = `import ${componentName} from '${packageName}'`;
@@ -58,26 +89,49 @@ function exportMod(schema, option) {
       imports.push({
         _import: singleImport,
         package: packageName,
-        version: componentMap.dependenceVersion || '*'
+        version: componentMap.dependenceVersion || '*',
       });
     }
   };
 
   // generate render xml
-  const generateRender = schema => {
+  const generateRender = (schema) => {
     const componentName = schema.componentName;
     const type = schema.componentName.toLowerCase();
     const className = schema.props && schema.props.className;
-    const classString = className ? ` style={styles["${className}"]}` : '';
+    let classString = '';
+
+    // format className
+    if (imgcookConfig.exportClassName) {
+      // get global class names
+      if(imgcookConfig.globalCss){
+        const cssResults = getGlobalClassNames(schema.props.style, globalCss)
+        const names = [...cssResults.names, className]
+        classString += ` className="${names.join(' ')}"`;
+        schema.props.style = cssResults.style;
+
+      }else{
+        if (className) {
+          classString += ` className="${className}"`;
+        }
+      }
+    } else {
+      // format styles
+      if (className) {
+        classString = ` style={${genStyleCode('styles', className)}}`;
+      }
+    }
 
     if (className) {
-      style[className] = parseStyle(schema.props.style, scale);
+      style[className] = parseStyle(schema.props.style, scale, {
+        imgcookConfig,
+      });
     }
 
     let xml;
     let props = '';
 
-    Object.keys(schema.props).forEach(key => {
+    Object.keys(schema.props).forEach((key) => {
       if (['className', 'style', 'text', 'src', 'key'].indexOf(key) === -1) {
         props += ` ${key}={${parseProps(schema.props[key])}}`;
       }
@@ -89,7 +143,9 @@ function exportMod(schema, option) {
 
       // 无障碍能力
       if (['onClick'].indexOf(key) === 0) {
-        props += ` accessible={true} role="link" aria-label={\`${getText(schema)}\`}`;
+        props += ` accessible={true} role="link" aria-label={\`${getText(
+          schema
+        )}\`}`;
       }
     });
 
@@ -161,7 +217,7 @@ function exportMod(schema, option) {
       xml = parseLoopData.value;
       useState = useState.concat(parseLoopData.hookState);
     }
-    
+
     xml = replaceState(xml);
 
     if (schema.condition) {
@@ -174,11 +230,11 @@ function exportMod(schema, option) {
   };
 
   // parse schema
-  const transform = schema => {
+  const transform = (schema) => {
     let result = '';
     const blockName = schema.fileName || schema.id;
     if (Array.isArray(schema)) {
-      schema.forEach(layer => {
+      schema.forEach((layer) => {
         result += transform(layer);
       });
     } else {
@@ -194,14 +250,14 @@ function exportMod(schema, option) {
         }
 
         if (schema.methods) {
-          Object.keys(schema.methods).forEach(name => {
+          Object.keys(schema.methods).forEach((name) => {
             const { params, content } = parseFunction(schema.methods[name]);
             methods.push(`function ${name}(${params}) {${content}}`);
           });
         }
 
         if (schema.dataSource && Array.isArray(schema.dataSource.list)) {
-          schema.dataSource.list.forEach(item => {
+          schema.dataSource.list.forEach((item) => {
             if (typeof item.isInit === 'boolean' && item.isInit) {
               init.push(`${item.id}();`);
             } else if (typeof item.isInit === 'string') {
@@ -230,8 +286,10 @@ function exportMod(schema, option) {
         }
       } else if (['block'].indexOf(type) !== -1) {
         let props = '';
-        Object.keys(schema.props).forEach(key => {
-          if (['className', 'style', 'text', 'src', 'key'].indexOf(key) === -1) {
+        Object.keys(schema.props).forEach((key) => {
+          if (
+            ['className', 'style', 'text', 'src', 'key'].indexOf(key) === -1
+          ) {
             props += ` ${key}={${parseProps(schema.props[key])}}`;
           }
         });
@@ -251,7 +309,7 @@ function exportMod(schema, option) {
 
   // option.utils
   if (option.utils) {
-    Object.keys(option.utils).forEach(name => {
+    Object.keys(option.utils).forEach((name) => {
       utils.push(`const ${name} = ${option.utils[name]}`);
     });
   }
@@ -263,10 +321,10 @@ function exportMod(schema, option) {
   const prettierJsOpt = {
     parser: 'babel',
     printWidth: 120,
-    singleQuote: true
+    singleQuote: true,
   };
   const prettierCssOpt = {
-    parser: 'css'
+    parser: 'css',
   };
   const hooksView = generateRender(schema);
   const hasDispatch = hooksView.match('dispatch');
@@ -274,11 +332,11 @@ function exportMod(schema, option) {
     `
     'use strict';
     import { createElement, useState, useEffect, memo } from 'rax';
-    ${imports.map(i => i._import).join('\n')}
-    ${importMods.map(i => i._import).join('\n')}
+    ${imports.map((i) => i._import).join('\n')}
+    ${importMods.map((i) => i._import).join('\n')}
     ${hasDispatch ? "import { IndexContext } from '../../context';" : ''}
 
-    import styles from './${fileName}.css';
+    ${importStyles.map((i) => i).join('\n')}
 
     ${utils.join('\n')}
     export default memo((props) => {
@@ -290,25 +348,42 @@ function exportMod(schema, option) {
       }
       ${lifeCycles.join('\n')}
       ${methods.join('\n')}
-      ${hooksView.match(/^\{true\ \&\& /) ? `return (<View>${hooksView}</View>)`: `return (${hooksView})`}
+      ${
+        hooksView.match(/^\{true\ \&\& /)
+          ? `return (<View>${hooksView}</View>)`
+          : `return (${hooksView})`
+      }
     });
   `,
     prettierJsOpt
   );
 
-  return [
+  const panelDisplay =  [
     {
-      panelName: `${fileName}.jsx`,
+      panelName: `${filePathName}.jsx`,
       panelValue: indexValue,
       panelType: 'js',
-      panelImports: imports
+      folder: folderName,
+      panelImports: imports,
     },
     {
-      panelName: `${fileName}.css`,
+      panelName: `${filePathName}.module.css`,
       panelValue: prettier.format(`${generateCSS(style)}`, prettierCssOpt),
-      panelType: 'css'
-    }
+      panelType: 'css',
+      folder: folderName,
+    },
   ];
+  
+  // 只有一个模块时，生成到当前模块
+  if(isExportGlobalFile){
+    panelDisplay.push({
+      panelName: `global.css`,
+      panelValue: prettier.format(schema.css, prettierCssOpt),
+      panelType: 'css'
+    })
+  }
+
+  return panelDisplay;
 }
 
 module.exports = exportMod;
