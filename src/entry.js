@@ -61,7 +61,12 @@ module.exports = function(schema, option) {
   option.blocksCount =  blocks.length;
   option.blockInPage = schema.componentName === 'Page'
   option.pageGlobalCss = schema.css || ''
-  Object.assign(
+  
+  option.imgcookConfig = Object.assign({
+    globalCss: false,
+    cssUnit: 'rpx',
+    inlineStyle: false
+  },
     option.imgcookConfig,
     schema.imgcookConfig
   )
