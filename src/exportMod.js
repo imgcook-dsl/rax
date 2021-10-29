@@ -352,6 +352,7 @@ function exportMod(schema, option) {
     prettierJsOpt
   );
 
+
   const panelDisplay =  [
     {
       panelName: `${filePathName}.jsx`,
@@ -369,7 +370,7 @@ function exportMod(schema, option) {
   ];
   
   // 只有一个模块时，生成到当前模块
-  if(isExportGlobalFile){
+  if(isExportGlobalFile && schema.css){
     panelDisplay.push({
       panelName: `global.css`,
       panelValue: prettier.format(schema.css, prettierCssOpt),
