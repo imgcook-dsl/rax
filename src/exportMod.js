@@ -18,21 +18,15 @@ const {
 } = require('./utils');
 
 function exportMod(schema, option) {
-  const { prettier, scale, componentsMap, folder, blocksCount } = option;
-
-  const imgcookConfig = Object.assign(
-    {},
-    option.imgcookConfig,
-    schema.imgcookConfig
-  );
-
+  const { prettier, scale, componentsMap, folder, blocksCount, blockInPage, imgcookConfig, pageGlobalCss } = option;
   
-  const isExportGlobalFile = imgcookConfig.globalCss && blocksCount == 1;
+  console.log(imgcookConfig)
+  const isExportGlobalFile = imgcookConfig.globalCss && blocksCount == 1 && !blockInPage;
   const fileName = schema.fileName;
 
   const folderName = blocksCount == 1 ? '' : schema.fileName;
   const filePathName = 'index';
-  const globalCss = schema.css || '';
+  const globalCss = pageGlobalCss + '\n'+(schema.css || '');
 
   // imports
   let imports = [];
@@ -67,11 +61,8 @@ function exportMod(schema, option) {
   if(isExportGlobalFile){
     importStyles.push(`import './global.css';`) ;
   }
-  if (imgcookConfig.exportClassName) {
-    importStyles.push(`import './${filePathName}.module.css';`) ;
-  } else {
-    importStyles.push(`import styles from './${filePathName}.module.css';`) ;
-  }
+
+  importStyles.push(`import styles from './${filePathName}.module.css';`) ;
 
   const collectImports = (componentName) => {
     let componentMap = componentsMap[componentName] || {};
@@ -100,19 +91,22 @@ function exportMod(schema, option) {
     const type = schema.componentName.toLowerCase();
     const className = schema.props && schema.props.className;
     let classString = '';
-
     // format className
-    if (imgcookConfig.exportClassName) {
+    if (!imgcookConfig.inlineStyle) {
       // get global class names
       if(imgcookConfig.globalCss){
-        const cssResults = getGlobalClassNames(schema.props.style, globalCss)
-        const names = [...cssResults.names, className]
-        classString += ` className="${names.join(' ')}"`;
-        schema.props.style = cssResults.style;
+        const cssResults = getGlobalClassNames(schema.props.style, globalCss);
 
+        if(cssResults.names.length > 0){
+          classString += ` className={\`${ cssResults.names.join(' ')} \$\{${genStyleCode('styles', className) }\}\` }`;
+        }else{
+          classString += ` className={${genStyleCode('styles', className) } }`;
+        }
+  
+        schema.props.style = cssResults.style;
       }else{
         if (className) {
-          classString += ` className="${className}"`;
+          classString += ` className={${genStyleCode('styles', className)}}`;
         }
       }
     } else {
@@ -379,7 +373,8 @@ function exportMod(schema, option) {
     panelDisplay.push({
       panelName: `global.css`,
       panelValue: prettier.format(schema.css, prettierCssOpt),
-      panelType: 'css'
+      panelType: 'css',
+      folder: folderName,
     })
   }
 

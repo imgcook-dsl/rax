@@ -59,6 +59,12 @@ module.exports = function(schema, option) {
   let panelDisplay = [];
 
   option.blocksCount =  blocks.length;
+  option.blockInPage = schema.componentName === 'Page'
+  option.pageGlobalCss = schema.css || ''
+  Object.assign(
+    option.imgcookConfig,
+    schema.imgcookConfig
+  )
 
   blocks.length > 0 &&
     blocks.forEach(block => {
