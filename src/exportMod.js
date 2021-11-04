@@ -11,22 +11,33 @@ const {
   replaceState,
   parseCondition,
   generateCSS,
+  genStyleClass,
   parseDataSource,
   genStyleCode,
   line2Hump,
   getText,
+  addAnimation,
 } = require('./utils');
 
 function exportMod(schema, option) {
-  const { prettier, scale, componentsMap, folder, blocksCount, blockInPage, imgcookConfig, pageGlobalCss } = option;
-  
-  console.log(imgcookConfig)
-  const isExportGlobalFile = imgcookConfig.globalCss && blocksCount == 1 && !blockInPage;
+  const {
+    prettier,
+    scale,
+    componentsMap,
+    folder,
+    blocksCount,
+    blockInPage,
+    imgcookConfig,
+    pageGlobalCss,
+  } = option;
+
+  const isExportGlobalFile =
+    imgcookConfig.globalCss && blocksCount == 1 && !blockInPage;
   const fileName = schema.fileName;
 
   const folderName = blocksCount == 1 ? '' : schema.fileName;
   const filePathName = 'index';
-  const globalCss = pageGlobalCss + '\n'+(schema.css || '');
+  const globalCss = pageGlobalCss + '\n' + (schema.css || '');
 
   // imports
   let imports = [];
@@ -49,6 +60,9 @@ function exportMod(schema, option) {
   // useState
   let useState = [];
 
+  // calsses
+  let classes = [];
+
   // methods
   const methods = [];
 
@@ -58,11 +72,11 @@ function exportMod(schema, option) {
   // init
   const init = [];
 
-  if(isExportGlobalFile){
-    importStyles.push(`import './global.css';`) ;
+  if (isExportGlobalFile) {
+    importStyles.push(`import './global.css';`);
   }
 
-  importStyles.push(`import styles from './${filePathName}.module.css';`) ;
+  importStyles.push(`import styles from './${filePathName}.module.css';`);
 
   const collectImports = (componentName) => {
     let componentMap = componentsMap[componentName] || {};
@@ -89,22 +103,24 @@ function exportMod(schema, option) {
   const generateRender = (schema) => {
     const componentName = schema.componentName;
     const type = schema.componentName.toLowerCase();
-    const className = schema.props && schema.props.className;
+    let className = schema.props && schema.props.className;
+    className = genStyleClass(className, imgcookConfig.cssStyle);
     let classString = '';
     // format className
     if (!imgcookConfig.inlineStyle) {
       // get global class names
-      if(imgcookConfig.globalCss){
+      if (imgcookConfig.globalCss) {
         const cssResults = getGlobalClassNames(schema.props.style, globalCss);
-
-        if(cssResults.names.length > 0){
-          classString += ` className={\`${ cssResults.names.join(' ')} \$\{${genStyleCode('styles', className) }\}\` }`;
-        }else{
-          classString += ` className={${genStyleCode('styles', className) } }`;
+        if (cssResults.names.length > 0) {
+          classString += ` className={\`${cssResults.names.join(
+            ' '
+          )} \$\{${genStyleCode('styles', className)}\}\` }`;
+        } else {
+          classString += ` className={${genStyleCode('styles', className)} }`;
         }
-  
+
         schema.props.style = cssResults.style;
-      }else{
+      } else {
         if (className) {
           classString += ` className={${genStyleCode('styles', className)}}`;
         }
@@ -224,12 +240,12 @@ function exportMod(schema, option) {
   };
 
   // parse schema
-  const transform = (schema) => {
+  const transformHooks = (schema) => {
     let result = '';
     const blockName = schema.fileName || schema.id;
     if (Array.isArray(schema)) {
       schema.forEach((layer) => {
-        result += transform(layer);
+        result += transformHooks(layer);
       });
     } else {
       const type = schema.componentName.toLowerCase();
@@ -301,6 +317,103 @@ function exportMod(schema, option) {
     return result;
   };
 
+  const transformComponent = (schema) => {
+    let result = '';
+
+    if (Array.isArray(schema)) {
+      schema.forEach((layer) => {
+        result += transformComponent(layer);
+      });
+    } else {
+      const type = schema.componentName.toLowerCase();
+
+      if (['page', 'block', 'component'].indexOf(type) !== -1) {
+        // 容器组件处理: state/method/dataSource/lifeCycle/render
+        const states = [];
+        const lifeCycles = [];
+        const methods = [];
+        const init = [];
+        const render = [`render(){ return (`];
+        let classData = [
+          `export default class ${schema.componentName}_${classes.length} extends Component {`,
+        ];
+
+        if (schema.state) {
+          states.push(`state = ${toString(schema.state)}`);
+        }
+
+        if (schema.methods) {
+          Object.keys(schema.methods).forEach((name) => {
+            const { params, content } = parseFunction(schema.methods[name]);
+            methods.push(`${name}(${params}) {${content}}`);
+          });
+        }
+
+        if (schema.dataSource && Array.isArray(schema.dataSource.list)) {
+          schema.dataSource.list.forEach((item) => {
+            if (typeof item.isInit === 'boolean' && item.isInit) {
+              init.push(`this.${item.id}();`);
+            } else if (typeof item.isInit === 'string') {
+              init.push(
+                `if (${parseProps(item.isInit)}) { this.${item.id}(); }`
+              );
+            }
+            methods.push(parseDataSource(item));
+          });
+
+          if (schema.dataSource.dataHandler) {
+            const { params, content } = parseFunction(
+              schema.dataSource.dataHandler
+            );
+            methods.push(`dataHandler(${params}) {${content}}`);
+            init.push(`this.dataHandler()`);
+          }
+        }
+
+        if (schema.lifeCycles) {
+          if (!schema.lifeCycles['_constructor']) {
+            lifeCycles.push(
+              `constructor(props, context) { super(); ${init.join('\n')}}`
+            );
+          }
+
+          Object.keys(schema.lifeCycles).forEach((name) => {
+            const { params, content } = parseFunction(schema.lifeCycles[name]);
+
+            if (name === '_constructor') {
+              lifeCycles.push(
+                `constructor(${params}) { super(); ${content} ${init.join(
+                  '\n'
+                )}}`
+              );
+            } else {
+              lifeCycles.push(`${name}(${params}) {${content}}`);
+            }
+          });
+        }
+
+        render.push(generateRender(schema));
+        render.push(`);}`);
+        classData = classData
+          .concat(states)
+          .concat(lifeCycles)
+          .concat(methods)
+          .concat(render);
+        classData.push('}');
+
+        classes.push(classData.join('\n'));
+      } else {
+        result += generateRender(schema);
+      }
+    }
+
+    return result;
+  };
+
+  const transform = imgcookConfig.useHooks
+    ? transformHooks
+    : transformComponent;
+
   // option.utils
   if (option.utils) {
     Object.keys(option.utils).forEach((name) => {
@@ -308,8 +421,54 @@ function exportMod(schema, option) {
     });
   }
 
+  // parse schema
+
   // start parse schema
   transform(schema);
+  let indexValue = '';
+  if (imgcookConfig.useHooks) {
+    const hooksView = generateRender(schema);
+    const hasDispatch = hooksView.match('dispatch');
+    indexValue = `
+      'use strict';
+      import { createElement, useState, useEffect, memo } from 'rax';
+      ${imports.map((i) => i._import).join('\n')}
+      ${importMods.map((i) => i._import).join('\n')}
+      ${hasDispatch ? "import { IndexContext } from '../../context';" : ''}
+  
+      ${importStyles.map((i) => i).join('\n')}
+      ${utils.join('\n')}
+
+      export default memo((props) => {
+        ${useState.join('\n')}
+        ${
+          hasDispatch
+            ? 'const { state: { txt }, dispatch} = useContext(IndexContext);'
+            : ''
+        }
+        ${lifeCycles.join('\n')}
+        ${methods.join('\n')}
+        ${
+          hooksView.match(/^\{true\ \&\& /)
+            ? `return (<View>${hooksView}</View>)`
+            : `return (${hooksView})`
+        }
+      });
+    `;
+  } else {
+    indexValue = `
+    'use strict';
+
+    import {createElement, Component, render} from 'rax';
+    ${imports.map((i) => i._import).join('\n')}
+    ${importMods.map((i) => i._import).join('\n')}
+    ${importStyles.map((i) => i).join('\n')}
+
+    ${utils.join('\n')}
+    ${classes.join('\n')}
+  `;
+  }
+
 
   // output
   const prettierJsOpt = {
@@ -320,63 +479,40 @@ function exportMod(schema, option) {
   const prettierCssOpt = {
     parser: 'css',
   };
-  const hooksView = generateRender(schema);
-  const hasDispatch = hooksView.match('dispatch');
-  const indexValue = prettier.format(
-    `
-    'use strict';
-    import { createElement, useState, useEffect, memo } from 'rax';
-    ${imports.map((i) => i._import).join('\n')}
-    ${importMods.map((i) => i._import).join('\n')}
-    ${hasDispatch ? "import { IndexContext } from '../../context';" : ''}
 
-    ${importStyles.map((i) => i).join('\n')}
+  const prefix = imgcookConfig.inlineStyle
+    ? ''
+    : schema.props && schema.props.className;
 
-    ${utils.join('\n')}
-    export default memo((props) => {
-      ${useState.join('\n')}
-      ${
-        hasDispatch
-          ? 'const { state: { txt }, dispatch} = useContext(IndexContext);'
-          : ''
-      }
-      ${lifeCycles.join('\n')}
-      ${methods.join('\n')}
-      ${
-        hooksView.match(/^\{true\ \&\& /)
-          ? `return (<View>${hooksView}</View>)`
-          : `return (${hooksView})`
-      }
-    });
-  `,
-    prettierJsOpt
-  );
+  const animationKeyframes = addAnimation(schema);
 
-
-  const panelDisplay =  [
+  const panelDisplay = [
     {
       panelName: `${filePathName}.jsx`,
-      panelValue: indexValue,
+      panelValue: prettier.format(indexValue, prettierJsOpt),
       panelType: 'js',
       folder: folderName,
       panelImports: imports,
     },
     {
       panelName: `${filePathName}.module.css`,
-      panelValue: prettier.format(`${generateCSS(style)}`, prettierCssOpt),
+      panelValue: prettier.format(
+        `${generateCSS(style, prefix)} ${animationKeyframes}`,
+        prettierCssOpt
+      ),
       panelType: 'css',
       folder: folderName,
     },
   ];
-  
+
   // 只有一个模块时，生成到当前模块
-  if(isExportGlobalFile && schema.css){
+  if (isExportGlobalFile && schema.css) {
     panelDisplay.push({
       panelName: `global.css`,
-      panelValue: prettier.format(schema.css, prettierCssOpt),
+      panelValue: prettier.format(schema.css || '', prettierCssOpt),
       panelType: 'css',
       folder: folderName,
-    })
+    });
   }
 
   return panelDisplay;

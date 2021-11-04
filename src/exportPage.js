@@ -12,9 +12,11 @@ const {
   replaceState,
   parseCondition,
   generateCSS,
+  genStyleClass,
   parseDataSource,
   line2Hump,
   getText,
+  addAnimation
 } = require('./utils');
 
 function exportPage(schema, option) {
@@ -86,22 +88,25 @@ function exportPage(schema, option) {
   const generateRender = (schema) => {
     const componentName = schema.componentName;
     const type = schema.componentName.toLowerCase();
-    const className = schema.props && schema.props.className;
+    let className = schema.props && schema.props.className;
+    className = genStyleClass(className, imgcookConfig.cssStyle);
     let classString = '';
     // format className
     if (!imgcookConfig.inlineStyle) {
       // get global class names
-      if(imgcookConfig.globalCss){
+      if (imgcookConfig.globalCss) {
         const cssResults = getGlobalClassNames(schema.props.style, globalCss);
 
-        if(cssResults.names.length > 0){
-          classString += ` className={\`${ cssResults.names.join(' ')} \$\{${genStyleCode('styles', className) }\}\` }`;
-        }else{
-          classString += ` className={${genStyleCode('styles', className) } }`;
+        if ((cssResults.names || []).length > 0) {
+          classString += ` className={\`${(cssResults.names || []).join(
+            ' '
+          )} \$\{${genStyleCode('styles', className)}\}\` }`;
+        } else {
+          classString += ` className={${genStyleCode('styles', className)} }`;
         }
-  
+
         schema.props.style = cssResults.style;
-      }else{
+      } else {
         if (className) {
           classString += ` className={${genStyleCode('styles', className)}}`;
         }
@@ -113,6 +118,11 @@ function exportPage(schema, option) {
       }
     }
 
+    if (className) {
+      style[className] = parseStyle(schema.props.style, scale, {
+        imgcookConfig,
+      });
+    }
 
     let xml;
     let props = '';
@@ -373,6 +383,12 @@ function exportPage(schema, option) {
   `,
     prettierJsOpt
   );
+  const prefix = imgcookConfig.inlineStyle
+    ? ''
+    : schema.props && schema.props.className;
+
+
+  const animationKeyframes = addAnimation(schema);
 
   const panelDisplay = [
     {
@@ -389,7 +405,10 @@ function exportPage(schema, option) {
     },
     {
       panelName: `${filePathName}.css`,
-      panelValue: prettier.format(`${generateCSS(style)}`, prettierCssOpt),
+      panelValue: prettier.format(
+        `${generateCSS(style, prefix)}${animationKeyframes}`,
+        prettierCssOpt
+      ),
       panelType: 'css',
     },
   ];
@@ -398,7 +417,7 @@ function exportPage(schema, option) {
   if (isExportGlobalFile) {
     panelDisplay.push({
       panelName: `global.css`,
-      panelValue: prettier.format(schema.css, prettierCssOpt),
+      panelValue: prettier.format(globalCss, prettierCssOpt),
       panelType: 'css',
     });
   }

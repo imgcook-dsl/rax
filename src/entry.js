@@ -20,17 +20,6 @@ module.exports = function(schema, option) {
       case 'block':
         // parse fileName
         json.fileName = json.fileName || `block_${json.id.slice(0, 6)}`;
-        if (
-          json.smart &&
-          json.smart.layerProtocol &&
-          json.smart.layerProtocol.module &&
-          json.smart.layerProtocol.module.type
-        ) {
-          json.fileName = json.smart.layerProtocol.module.type.replace(
-            /[@|\/]/g,
-            ''
-          );
-        }
         json.fileName = json.fileName === 'index' ? json.fileName : line2Hump(json.fileName);
         blocks.push(json);
         break;
@@ -58,18 +47,23 @@ module.exports = function(schema, option) {
   // export module code
   let panelDisplay = [];
 
-  option.blocksCount =  blocks.length;
+  option.blocksCount = blocks.length;
   option.blockInPage = schema.componentName === 'Page'
   option.pageGlobalCss = schema.css || ''
   
   option.imgcookConfig = Object.assign({
-    globalCss: false,
+    globalCss: true,
     cssUnit: 'rpx',
-    inlineStyle: false
+    inlineStyle: "className"
   },
     option.imgcookConfig,
-    schema.imgcookConfig
+    schema.imgcookConfig,
+    option._.get(schema, 'imgcook.dslConfig'),
   )
+
+  option.imgcookConfig.inlineStyle = option.imgcookConfig.inlineStyle === 'className';
+  option.imgcookConfig.useHooks = option.imgcookConfig.componentStyle === 'hooks';
+
 
   blocks.length > 0 &&
     blocks.forEach(block => {
