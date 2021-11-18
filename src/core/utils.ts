@@ -4,9 +4,14 @@ const camelCase = require('lodash/camelCase');
 const kebabCase = require('lodash/kebabCase');
 const snakeCase = require('lodash/snakeCase');
 const cssParser = require('css/lib/parse');
+import { DSL_CONFIG } from './consts'
+
 
 // 从 css 解析样式规则饿
-const getCssRules = (text) => {
+export const getCssRules = (text: string): {
+  selectors: string,
+  style: any
+}[] => {
   if (!cssParser) {
     return [];
   }
@@ -31,8 +36,8 @@ const getCssRules = (text) => {
 };
 
 //  提取全局样式
-const getGlobalClassNames = (cssObject, globalCssString) => {
-  let names = [];
+export const getGlobalClassNames = (cssObject, globalCssString) => {
+  let names: string[] = [];
   if (!(globalCssString && cssParser)) {
     // 没有全局样式名
     return {
@@ -46,7 +51,8 @@ const getGlobalClassNames = (cssObject, globalCssString) => {
 
   for (let rule of rules) {
     // 按顺序提取样式
-    const isMatch = find([cssObject], rule.style);
+    // 仅提取 . 选择符
+    const isMatch = find([cssObject], rule.style) && rule.selectors.startsWith('.');
     if (isMatch) {
       for (let key in rule.style) {
         unset(cssObject, key);
@@ -61,12 +67,12 @@ const getGlobalClassNames = (cssObject, globalCssString) => {
   };
 };
 
-const isExpression = (value) => {
+export const isExpression = (value) => {
   return /^\{\{.*\}\}$/.test(value);
 };
 
 // eg: hello_world => HelloWorld
-const line2Hump = (str) => {
+export const line2Hump = (str) => {
   str = str.replace(/[_|-](\w)/g, (all, letter) => {
     return letter.toUpperCase();
   });
@@ -74,14 +80,15 @@ const line2Hump = (str) => {
   return str;
 };
 
-const isEmptyObj = (o) => {
+export const isEmptyObj = (o) => {
   if (o !== null && Object.prototype.toString.call(o) === '[object Object]') {
     return !Object.keys(o).length;
   }
   return false;
 };
 
-const transComponentsMap = (compsMap = {}) => {
+interface IComp { list?: { name: string; packageName: string; dependenceVersion: string; dependence: string }[] };
+export const transComponentsMap = (compsMap: IComp = {}) => {
   if (!compsMap || !Array.isArray(compsMap.list)) {
     return [];
   }
@@ -100,14 +107,14 @@ const transComponentsMap = (compsMap = {}) => {
         if (/^\d/.test(comp.dependenceVersion)) {
           comp.dependenceVersion = '^' + comp.dependenceVersion;
         }
-      } catch (e) {}
+      } catch (e) { }
       obj[componentName] = comp;
     }
     return obj;
   }, {});
 };
 
-const toString = (value) => {
+export const toString = (value) => {
   if ({}.toString.call(value) === '[object Function]') {
     return value.toString();
   }
@@ -127,15 +134,71 @@ const toString = (value) => {
   return String(value);
 };
 
-const toUpperCaseStart = (value) => {
+export const toUpperCaseStart = (value) => {
   return value.charAt(0).toUpperCase() + value.slice(1);
 };
 
-// 处理schema一些常见问题
-const formatSchema = (json) => {
+
+// 计数器
+let counter = {};
+const getCounter = (key) => {
+  counter[key] = (counter[key] || 0) + 1
+  return counter[key];
+}
+
+export const resetCounter = (key) => {
+  counter[key] = 0;
+}
+
+/**
+ * 处理schema一些常见问题
+ * @param schema 
+ * 1. 清理 class 空格
+ * 2. 关键节点命名兜底
+ */
+export const initSchema = (schema) => {
+  //  重置计数器
+  resetCounter('page');
+  resetCounter('block');
+  resetCounter('component');
+
+  // 清理 class 空格
+  traverse(schema, (node) => {
+    if (node && node.props && node.props.className) {
+      node.props.className = node.props.className.trim();
+    }
+  });
+
+  // 关键节点命名兜底
+  traverse(schema, (json) => {
+    switch (json.componentName.toLowerCase()) {
+      case 'page':
+        json.fileName = line2Hump(json.fileName || `page_${getCounter('page')}`);
+        break;
+      case 'block':
+        json.fileName = line2Hump(json.fileName || `block_${getCounter('block')}`);
+        break;
+      case 'component':
+        json.fileName = line2Hump(json.fileName || `component_${getCounter('component')}`);
+        break;
+      default:
+        break;
+    }
+  });
+};
+
+// 遍历节点
+export const traverse = (json, callback) => {
+  if (Array.isArray(json)) {
+    json.forEach((node) => {
+      traverse(node, callback)
+    });
+    return
+  }
+
   // 去除 class 空格
-  if (json && json.props && json.props.className) {
-    json.props.className = json.props.className.trim();
+  if (json && callback) {
+    callback(json)
   }
 
   if (
@@ -144,46 +207,64 @@ const formatSchema = (json) => {
     Array.isArray(json.children)
   ) {
     json.children.forEach((child) => {
-      formatSchema(child);
+      traverse(child, callback);
     });
   }
 };
 
-const genStyleClass = (string, type)=>{
-  switch(type){
-    case 'camelCase': return camelCase(string);
-    case 'kebabCase': return kebabCase(string);
-    case 'snakeCase': return snakeCase(string);
-    default:
-      return camelCase(string);
-  }
+export const genStyleClass = (string, type) => {
+  let classArray = string.split(' ');
+  classArray = classArray.filter(name => !!name);
+  classArray = classArray.map(name => {
+    switch (type) {
+      case 'camelCase': return camelCase(name);
+      case 'kebabCase': return kebabCase(name);
+      case 'snakeCase': return snakeCase(name);
+      default:
+        return camelCase(name);
+    }
+  });
+  return classArray.join(' ')
 }
-const genStyleCode = (styles, key) => {
+
+export const genStyleCode = (styles, key) => {
   return !/-/.test(key) && key.trim()
     ? `${styles}.${key}`
     : `${styles}['${key}']`;
 };
 
-const parseNumberValue = (value, option) => {
-  value = String(value).replace(/\b[\d\.]+(r?px)?\b/, (v) => {
-    v = parseFloat(v, 10);
-    if (!isNaN(v) && v !== 0) {
-      return v;
+export const parseNumberValue = (value, { cssUnit = 'px', scale }) => {
+  value = String(value).replace(/\b[\d\.]+(px|rem|rpx|vw)?\b/, (v) => {
+    const nv = parseFloat(v);
+    if (!isNaN(nv) && nv !== 0) {
+      return toString(nv);
     } else {
       return 0;
     }
   });
   if (/^\-?[\d\.]+$/.test(value)) {
-    value = parseFloat(value, 10);
-    if (option.imgcookConfig.cssUnit == 'rpx') {
-      value += 'rpx';
+    value = parseFloat(value);
+    if (cssUnit == 'rpx') {
+      value += 'px';
+    } if (cssUnit == 'rem') {
+      const htmlFontSize = DSL_CONFIG.htmlFontSize || 16;
+      value = parseFloat((value / htmlFontSize).toFixed(2));
+      value = value ? `${value}rem` : value;
+    } else if (cssUnit == 'vw') {
+      const _w = 750 / scale
+      value = (100 * parseInt(value) / _w).toFixed(2);
+      value = value == 0 ? value : value + 'vw';
+    } else {
+      value += cssUnit;
     }
   }
   return value;
 };
 
 // convert to responsive unit, such as vw
-const parseStyle = (style, scale, option) => {
+export const parseStyle = (style, params) => {
+  const { scale, cssUnit } = params
+  const resultStyle = {}
   for (let key in style) {
     switch (key) {
       case 'fontSize':
@@ -208,23 +289,26 @@ const parseStyle = (style, scale, option) => {
       case 'borderTopRightRadius':
       case 'borderTopLeftRadius':
       case 'borderRadius':
-        style[key] = parseInt(style[key]) * scale;
+        resultStyle[key] = parseInt(style[key]) * scale;
         if (style[key]) {
-          style[key] = parseNumberValue(style[key], option);
+          resultStyle[key] = parseNumberValue(style[key], params);
         }
         break;
       default:
-        if (style[key] && /^[\d\.]+px$/.test(style[key])) {
-          style[key] = parseNumberValue(style[key], option);
+        if (style[key] && String(style[key]).includes('px')) {
+          resultStyle[key] = String(style[key]).replace(/[\d\.]+px/g, (v) => {
+            return /^[\d\.]+px$/.test(v) ? parseNumberValue(v, params) : v;
+          })
         }
+        resultStyle[key] = resultStyle[key] || style[key]
     }
   }
 
-  return style;
+  return resultStyle;
 };
 
 // parse function, return params and content
-const parseFunction = (func) => {
+export const parseFunction = (func) => {
   const funcString = func.toString();
   const params = funcString.match(/\([^\(\)]*\)/)[0].slice(1, -1);
   const content = funcString.slice(
@@ -238,7 +322,7 @@ const parseFunction = (func) => {
 };
 
 // parse layer props(static values or expression)
-const parseProps = (value, isReactNode) => {
+export const parseProps = (value, isReactNode?) => {
   if (typeof value === 'string') {
     if (isExpression(value)) {
       if (isReactNode) {
@@ -264,7 +348,7 @@ const parseProps = (value, isReactNode) => {
 };
 
 // parse condition: whether render the layer
-const parseCondition = (condition, render) => {
+export const parseCondition = (condition, render) => {
   if (typeof condition === 'boolean') {
     return `${condition} && ${render}`;
   } else if (typeof condition === 'string') {
@@ -274,7 +358,7 @@ const parseCondition = (condition, render) => {
 };
 
 // flexDirection -> flex-direction
-const parseCamelToLine = (string) => {
+export const parseCamelToLine = (string) => {
   return string
     .split(/(?=[A-Z])/)
     .join('-')
@@ -282,7 +366,7 @@ const parseCamelToLine = (string) => {
 };
 
 // style obj -> css
-const generateCSS = (style, prefix) => {
+export const generateCSS = (style, prefix) => {
   let css = '';
 
   for (let layer in style) {
@@ -296,8 +380,9 @@ const generateCSS = (style, prefix) => {
   return css;
 };
 
+
 // parse loop render
-const parseLoop = (loop, loopArg, render, states) => {
+export const parseLoop = (loop, loopArg, render, params = {}) => {
   let data;
   let loopArgItem = (loopArg && loopArg[0]) || 'item';
   let loopArgIndex = (loopArg && loopArg[1]) || 'index';
@@ -322,16 +407,17 @@ const parseLoop = (loop, loopArg, render, states) => {
     stateValue = `state.${data.split('.').pop()}`;
   }
 
+  const formatRender = params['formatRender'] || function (str) { return str };
   return {
     hookState: [],
     value: `${stateValue}.map((${loopArgItem}, ${loopArgIndex}) => {
-      return (${render});
+      return (${formatRender(render)});
     })`,
   };
 };
 
 // parse state
-const parseState = (states) => {
+export const parseState = (states) => {
   let stateName = 'state';
   // hooks state
   return `const [${stateName}, set${toUpperCaseStart(
@@ -340,7 +426,7 @@ const parseState = (states) => {
 };
 
 // replace state
-const replaceState = (render) => {
+export const replaceState = (render) => {
   // remove `this`
   let stateName = 'state';
   const re = new RegExp(`this.state`, 'g');
@@ -348,8 +434,8 @@ const replaceState = (render) => {
 };
 
 // replace state
-const parseLifeCycles = (schema, init) => {
-  let lifeCycles = [];
+export const parseLifeCycles = (schema, init) => {
+  let lifeCycles: string[] = [];
   if (!schema.lifeCycles['_constructor'] && init) {
     schema.lifeCycles['_constructor'] = `function _constructor() {}`;
   }
@@ -402,7 +488,7 @@ const parseLifeCycles = (schema, init) => {
   return lifeCycles;
 };
 
-const existImport = (imports, singleImport) => {
+export const existImport = (imports, singleImport) => {
   let exist = false;
   imports.forEach((item) => {
     if (item._import === singleImport) {
@@ -413,7 +499,11 @@ const existImport = (imports, singleImport) => {
 };
 
 // parse async dataSource
-const parseDataSource = (data, imports) => {
+export const parseDataSource = (data, imports: {
+  _import: string,
+  package: string,
+  version: string,
+}[] = []) => {
   const name = data.id;
   const { uri, method, params } = data.options;
   const action = data.type;
@@ -436,14 +526,14 @@ const parseDataSource = (data, imports) => {
 
       break;
     case 'jsonp':
-      singleImport = `import {fetchJsonp} from 'fetch-jsonp';`;
-      if (!existImport(imports, singleImport)) {
-        imports.push({
-          _import: singleImport,
-          package: 'fetch-jsonp',
-          version: '^1.1.3',
-        });
-      }
+      // singleImport = `import {fetchJsonp} from 'fetch-jsonp';`;
+      // if (!existImport(imports, singleImport)) {
+      //   imports.push({
+      //     _import: singleImport,
+      //     package: 'fetch-jsonp',
+      //     version: '^1.1.3',
+      //   });
+      // }
       break;
   }
 
@@ -456,12 +546,16 @@ const parseDataSource = (data, imports) => {
   let comma = isEmptyObj(payload) ? '' : ',';
   // params parse should in string template
   if (params) {
-    payload = `${toString(payload).slice(0, -1)} ${comma} body: ${
-      isExpression(params) ? parseProps(params) : toString(params)
-    }}`;
+    if (method !== 'GET') {
+      payload = `${toString(payload).slice(0, -1)} ${comma} body: ${isExpression(params) ? parseProps(params) : toString(params)
+        }}`;
+    } else {
+      payload = `${toString(payload).slice(0, -1)}}`;
+    }
   } else {
     payload = toString(payload);
   }
+
 
   let result = `{
   return ${action}(${parseProps(uri)}, ${toString(payload)})
@@ -480,13 +574,15 @@ const parseDataSource = (data, imports) => {
   result += '}';
 
   return {
-    value: `function ${name}() ${result}`,
+    value: `${name}() ${result}`,
+    functionName: name,
+    functionBody: result,
     imports,
   };
 };
 
 // get children text
-const getText = (schema) => {
+export const getText = (schema) => {
   let text = '';
 
   const getChildrenText = (schema) => {
@@ -510,15 +606,8 @@ const getText = (schema) => {
   return text;
 };
 
-const getAllLayers = function(layers, schema) {
-  if (schema.hasOwnProperty('children')) {
-    for (let i of schema.children) {
-      layers.push(i);
-      getAllLayers(layers, i);
-    }
-  }
-};
-const transAnimation = function(animation) {
+
+export const transAnimation = function (animation) {
   let keyFrames = ``;
   for (let i of animation.keyframes) {
     keyFrames += `${((i.offset * 10000) / 100.0).toFixed(0) + '%'} {
@@ -535,42 +624,12 @@ ${keyFrames}
   return keyframes;
 };
 
-const addAnimation = function(schema) {
+export const addAnimation = function (schema) {
   let animationRes = ``;
-  if (schema.animation) {
-    animationRes += transAnimation(schema.animation);
-  }
-  let layers = [];
-  getAllLayers(layers, schema);
-  for (let i of layers) {
-    if (i.animation) {
-      animationRes += transAnimation(i.animation);
+  traverse(schema, (json) => {
+    if (json.animation) {
+      animationRes += transAnimation(json.animation);
     }
-  }
+  })
   return animationRes;
-};
-
-module.exports = {
-  isExpression,
-  toString,
-  transComponentsMap,
-  line2Hump,
-  existImport,
-  toUpperCaseStart,
-  formatSchema,
-  genStyleCode,
-  getGlobalClassNames,
-  parseStyle,
-  parseDataSource,
-  parseFunction,
-  parseLoop,
-  parseCondition,
-  parseProps,
-  parseState,
-  parseLifeCycles,
-  replaceState,
-  generateCSS,
-  getText,
-  addAnimation,
-  genStyleClass
 };
