@@ -56,6 +56,7 @@ module.exports = function(schema, option) {
 
   // 记录所有blocks
   traverse(schema, (json) => {
+    json.componentName = json.componentName || '';
     switch (json.componentName.toLowerCase()) {
       case 'block':
         blocks.push(json);
