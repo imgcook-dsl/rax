@@ -235,7 +235,7 @@ export const genStyleCode = (styles, key) => {
 };
 
 export const parseNumberValue = (value) => {
-  const { cssUnit = 'px', scale  } = DSL_CONFIG
+  const { cssUnit = 'px', scale } = DSL_CONFIG
   value = String(value).replace(/\b[\d\.]+(px|rem|rpx|vw)?\b/, (v) => {
     const nv = parseFloat(v);
     if (!isNaN(nv) && nv !== 0) {
@@ -380,12 +380,74 @@ export const generateCSS = (style, prefix) => {
   return css;
 };
 
+/**
+ * （1）定位属性：position  display  float  left  top  right  bottom   overflow  clear   z-index
+（2）自身属性：width  height  padding  border  margin   background
+（3）文字样式：font-family   font-size   font-style   font-weight   font-varient   color   
+（4）文本属性：text-align   vertical-align   text-wrap   text-transform   text-indent    text-decoration   letter-spacing    word-spacing    white-space   text-overflow
+（5）css3中新增属性：content   box-shadow   border-radius  transform……
+ */
+const orderMap = [
+  "position", "display", "float", "left", "top", "right", "bottom", 
+  "flex-direction", "justify-content", "align-items", "align-self", "overflow", "clear", "z-index",
+  "width", "height", "max-width", "max-height", "padding", "padding-bottom", "padding-left", "padding-right", "padding-left", "border", "margin", "margin-top", "margin-bottom", "margin-left", "margin-right", "background", 
+  "background-color", "background-image", "background-size",
+  "font-family", "font-size", "font-style", "font-weight", "font-varient", "line-height", "color", "text-align", "vertical-align", "text-wrap", "text-transform", "text-indent", "text-decoration",
+  "letter-spacing", "word-spacing", "white-space", "text-overflow",
+  "content", "box-shadow", "border-radius", "transform"
+]
 // genrate css object string
-export const generateCssString = (style)=>{
+export const generateCssString = (style) => {
   let css = '';
-  for (let key in style) {
-    css += `${parseCamelToLine(key)}: ${style[key]};\n`;
+  let array: any[] = [];
+
+  // 缩写margin
+  const margin = Object.keys(style).filter(item=>item.startsWith("margin"));
+  if(!style['margin'] &&margin.length >2){
+    style["margin"] = `${style["marginTop"] || 0} ${style["marginRight"] || 0} ${style["marginBottom"] || 0} ${style["marginLeft"] || 0}`
+    delete style["marginTop"];
+    delete style["marginLeft"];
+    delete style["marginBottom"];
+    delete style["marginRight"];
   }
+
+    // 缩写 padding
+  const padding = Object.keys(style).filter(item=>item.startsWith("padding"));
+  if(!style['padding'] && padding.length >2){
+    style["padding"] = `${style["paddingTop"] || 0} ${style["paddingRight"] || 0} ${style["paddingBottom"] || 0} ${style["paddingLeft"] || 0}`
+    delete style["paddingTop"];
+    delete style["paddingLeft"];
+    delete style["paddingBottom"];
+    delete style["paddingRight"];
+  }
+
+
+
+  for (let key in style) {
+    const cssKey = parseCamelToLine(key);
+    const orderIndex = orderMap.indexOf(cssKey);
+    if(orderIndex == -1){
+      console.log('before', cssKey, orderIndex)
+    }
+    
+    array.push({
+      key: cssKey,
+      value: style[key],
+      index: orderIndex == -1 ? 100 : orderIndex
+    })
+  }
+
+
+  array.sort((a, b) => {
+    console.log(a.key, orderMap.indexOf(a.key), b.key, orderMap.indexOf(b.key))
+    return a.index - b.index
+  })
+
+  console.log('after', array)
+  css = array.map(item => {
+    return `${item.key}: ${item.value};`
+  }).join('');
+
   return css
 }
 
@@ -402,7 +464,7 @@ export const generateScss = (schema) => {
 
     if (json.children && json.children.length > 0) {
       json.children.forEach((child) => {
-        if(!['block','component','page'].includes(child.componentName.toLowerCase())){
+        if (!['block', 'component', 'page'].includes(child.componentName.toLowerCase())) {
           walk(child)
         }
       });
