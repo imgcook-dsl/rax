@@ -8,6 +8,22 @@ export const prettierCssOpt = {
   parser: 'css',
 };
 
+export const prettierScssOpt = {
+  parser: 'scss',
+  tabWidth: 2,
+  printWidth: 120,
+  singleQuote: true
+};
+
+
+export const prettierLessOpt = {
+  parser: 'less',
+  tabWidth: 2,
+  printWidth: 120,
+  singleQuote: true
+};
+
+
 export const prettierJsonOpt = {
   parser: 'json',
 };
@@ -40,6 +56,8 @@ export const OUTPUT_TYPE = {
 
 // 记录全局参数配置，初始化时直接修改
 export let DSL_CONFIG: IDslConfig = {
+  scale: 1,
+  cssType: 'css',
   globalCss: true,
   cssUnit: 'px',
   componentStyle: 'hooks',
@@ -51,7 +69,7 @@ export let DSL_CONFIG: IDslConfig = {
 };
 
 
-export const initConfig = (cfg)=>{
+export const initConfig = (cfg) => {
   DSL_CONFIG = Object.assign(DSL_CONFIG, cfg)
 }
 

@@ -5,6 +5,7 @@ import {
   traverse,
   parseLoop,
   parseStyle,
+  generateScss,
   parseFunction,
   parseProps,
   parseState,
@@ -19,10 +20,10 @@ import {
   addAnimation,
 } from './utils';
 
-import { CSS_TYPE, OUTPUT_TYPE, prettierJsOpt, prettierCssOpt } from './consts';
+import { CSS_TYPE, OUTPUT_TYPE, prettierJsOpt, prettierScssOpt, prettierCssOpt, prettierLessOpt } from './consts';
 
 
-export default function exportMod(schema, option):IPanelDisplay[] {
+export default function exportMod(schema, option): IPanelDisplay[] {
   const {
     prettier,
     scale,
@@ -44,16 +45,16 @@ export default function exportMod(schema, option):IPanelDisplay[] {
   let folderName;
   let filePathName = 'index';
 
-  if(schema.componentName == 'Page'){
+  if (schema.componentName == 'Page') {
     // 单页面
-    if(pagesCount == 1){
+    if (pagesCount == 1) {
       folderName = '';
-    }else{
+    } else {
       folderName = 'pages/' + schema.fileName;
     }
     // filePathName = schema.fileName
-  }else{
-    folderName = pagesCount == 0 && blocksCount == 1 && dslConfig.outputStyle !== OUTPUT_TYPE.PROJECT? '' : ('components/' + schema.fileName);
+  } else {
+    folderName = pagesCount == 0 && blocksCount == 1 && dslConfig.outputStyle !== OUTPUT_TYPE.PROJECT ? '' : ('components/' + schema.fileName);
   }
   schema.folderName = folderName;
 
@@ -63,7 +64,7 @@ export default function exportMod(schema, option):IPanelDisplay[] {
   let imports: IImport[] = [];
 
   // imports mods
-  let importMods: { _import: string}[] = [];
+  let importMods: { _import: string }[] = [];
 
   // import css
   let importStyles: string[] = [];
@@ -92,8 +93,7 @@ export default function exportMod(schema, option):IPanelDisplay[] {
   // init
   const init: string[] = [];
 
-  const cssFileName = `${filePathName}${dslConfig.inlineStyle == CSS_TYPE.MODULE_CLASS ? '.module':''}.css`
-
+  const cssFileName = `${filePathName}${dslConfig.inlineStyle == CSS_TYPE.MODULE_CLASS ? '.module' : ''}.${dslConfig.cssType || 'css'}`
 
   if (dslConfig.inlineStyle !== CSS_TYPE.INLINE_CSS) {
     if (isExportGlobalFile) {
@@ -113,7 +113,7 @@ export default function exportMod(schema, option):IPanelDisplay[] {
     if (
       packageName &&
       ['view', 'image', 'text', 'picture', 'link'].indexOf(packageName.toLowerCase()) >=
-        0
+      0
     ) {
       packageName = `rax-${packageName.toLowerCase()}`;
     }
@@ -148,20 +148,20 @@ export default function exportMod(schema, option):IPanelDisplay[] {
     let classString = json.classString;
 
     if (className) {
-      style[className] = parseStyle(json.props.style, {
-        scale,
-        cssUnit,
-      });
-
+      style[className] = parseStyle(json.props.style);
     }
 
     let xml;
     let props = '';
 
     Object.keys(json.props).forEach((key) => {
+      const propsValue = parseProps(json.props[key]);
+      if (propsValue == '') {
+        return
+      }
       if (key === 'codeStyle') {
         if (json.props[key] && JSON.stringify(json.props[key]) !== '{}') {
-          props += ` style={${parseProps(json.props[key])}}`;
+          props += ` style={${propsValue}}`;
         }
       }
 
@@ -170,17 +170,17 @@ export default function exportMod(schema, option):IPanelDisplay[] {
           key
         ) === -1
       ) {
-        props += ` ${key}={${parseProps(json.props[key])}}`;
+        props += ` ${key}={${propsValue}}`;
       }
 
       // fix attr when type is not text
       if (type !== 'text' && ['text'].includes(key)) {
-        props += ` ${key}={${parseProps(json.props[key])}}`;
+        props += ` ${key}={${propsValue}}`;
       }
 
       if (key === 'codeStyle') {
         if (json.props[key] && JSON.stringify(json.props[key]) !== '{}') {
-          props += ` style={${parseProps(json.props[key])}}`;
+          props += ` style={${propsValue}}`;
         }
       }
 
@@ -196,7 +196,7 @@ export default function exportMod(schema, option):IPanelDisplay[] {
     if (type === 'link' && !props.match('accessible') && dslConfig.accessible) {
       props += ` accessible={true} aria-label={\`${getText(json)}\`}`;
     }
-  
+
 
     switch (type) {
       case 'text':
@@ -220,7 +220,7 @@ export default function exportMod(schema, option):IPanelDisplay[] {
           const compName = json.fileName;
           xml = `<${compName} />`;
           // 当前是 Page 模块
-          const  compPath = rootSchema.componentName == 'Page' ? './components': '..';
+          const compPath = rootSchema.componentName == 'Page' ? './components' : '..';
           importMods.push({
             _import: `import ${compName} from '${compPath}/${compName}';`,
           });
@@ -260,7 +260,7 @@ export default function exportMod(schema, option):IPanelDisplay[] {
               return generateRender(node, true);
             })
             .join('')}</${componentName}>`;
-            
+
         } else if (typeof json.children === 'string') {
           xml = `<${componentName} ${classString} ${props} >${json.children}</${componentName}>`;
         } else {
@@ -277,7 +277,7 @@ export default function exportMod(schema, option):IPanelDisplay[] {
         {}
       );
       xml = parseLoopData.value;
-      
+
       useState = useState.concat(parseLoopData.hookState);
     }
 
@@ -295,76 +295,74 @@ export default function exportMod(schema, option):IPanelDisplay[] {
   // parse schema
   const transformHooks = (json) => {
     let result = '';
-     // 容器组件处理: state/method/dataSource/lifeCycle
-     const states: string[] = [];
+    // 容器组件处理: state/method/dataSource/lifeCycle
+    const states: string[] = [];
 
-     if (json.state) {
-       states.push(`state = ${toString(json.state)};`);
-       statesData = toString(json.state);
-     }
+    if (json.state) {
+      states.push(`state = ${toString(json.state)};`);
+      statesData = toString(json.state);
+    }
 
-     if (json.methods) {
-       Object.keys(json.methods).forEach((name) => {
-         const { params, content } = parseFunction(json.methods[name]);
-         methods.push(`function ${name}(${params}) {${content}}`);
-       });
-     }
+    if (json.methods) {
+      Object.keys(json.methods).forEach((name) => {
+        const { params, content } = parseFunction(json.methods[name]);
+        methods.push(`function ${name}(${params}) {${content}}`);
+      });
+    }
 
-     if (json.dataSource && Array.isArray(json.dataSource.list)) {
-       json.dataSource.list.forEach((item) => {
-         if (typeof item.isInit === 'boolean' && item.isInit) {
-           init.push(`${item.id}();`);
-         } else if (typeof item.isInit === 'string') {
-           init.push(`if (${parseProps(item.isInit)}) { ${item.id}(); }`);
-         }
-         const parseDataSourceData = parseDataSource(item, imports);
-         methods.push(
-           `const ${parseDataSourceData.functionName} = ()=> ${parseDataSourceData.functionBody}`
-         );
-         imports = parseDataSourceData.imports;
-       });
+    if (json.dataSource && Array.isArray(json.dataSource.list)) {
+      json.dataSource.list.forEach((item) => {
+        if (typeof item.isInit === 'boolean' && item.isInit) {
+          init.push(`${item.id}();`);
+        } else if (typeof item.isInit === 'string') {
+          init.push(`if (${parseProps(item.isInit)}) { ${item.id}(); }`);
+        }
+        const parseDataSourceData = parseDataSource(item, imports);
+        methods.push(
+          `const ${parseDataSourceData.functionName} = ()=> ${parseDataSourceData.functionBody}`
+        );
+        imports = parseDataSourceData.imports;
+      });
 
-       if (json.dataSource.dataHandler) {
-         const { params, content } = parseFunction(
-           json.dataSource.dataHandler
-         );
-         methods.push(`const dataHandler = (${params}) => {${content}}`);
-         init.push(`dataHandler()`);
-       }
-     }
+      if (json.dataSource.dataHandler) {
+        const { params, content } = parseFunction(
+          json.dataSource.dataHandler
+        );
+        methods.push(`const dataHandler = (${params}) => {${content}}`);
+        init.push(`dataHandler()`);
+      }
+    }
 
-     if (json.lifeCycles) {
-       lifeCycles = parseLifeCycles(json, init);
-     }
+    if (json.lifeCycles) {
+      lifeCycles = parseLifeCycles(json, init);
+    }
 
-     if (statesData) {
-       useState.push(parseState(statesData));
-     }
+    if (statesData) {
+      useState.push(parseState(statesData));
+    }
 
-     const hooksView = generateRender(json, false);
-     const hasDispatch = hooksView.match('dispatch');
+    const hooksView = generateRender(json, false);
+    const hasDispatch = hooksView.match('dispatch');
 
-     const classData = `
+    const classData = `
      export default memo((props) => {
        ${useState.join('\n')}
-       ${
-         hasDispatch
-           ? 'const { state: { txt }, dispatch} = useContext(IndexContext);'
-           : ''
-       }
+       ${hasDispatch
+        ? 'const { state: { txt }, dispatch} = useContext(IndexContext);'
+        : ''
+      }
  
        ${methods.join('\n')}
        ${lifeCycles.join('\n')}
-       ${
-         hooksView.match(/^\{true\ \&\& /)
-           ? `return (<View>${hooksView}</View>)`
-           : `return (${hooksView})`
-       }
+       ${hooksView.match(/^\{true\ \&\& /)
+        ? `return (<View>${hooksView}</View>)`
+        : `return (${hooksView})`
+      }
        });
        `;
-       classes.push(classData);
-       
-       
+    classes.push(classData);
+
+
 
     return result;
   };
@@ -516,9 +514,9 @@ export default function exportMod(schema, option):IPanelDisplay[] {
 
   const panelDisplay: IPanelDisplay[] = [
     {
-      panelName: `${filePathName}.${dslConfig.useTypescript?'tsx': 'jsx'}`,
+      panelName: `${filePathName}.${dslConfig.useTypescript ? 'tsx' : 'jsx'}`,
       panelValue: prettier.format(indexValue, prettierJsOpt),
-      panelType: dslConfig.useTypescript?'tsx': 'jsx',
+      panelType: dslConfig.useTypescript ? 'tsx' : 'jsx',
       folder: folderName,
       panelImports: imports,
     },
@@ -526,16 +524,40 @@ export default function exportMod(schema, option):IPanelDisplay[] {
 
   // 非内联模式 才引入 index.module.css
   if (dslConfig.inlineStyle !== CSS_TYPE.INLINE_CSS) {
+
+    let cssPanelValue = ''
+    switch (dslConfig.cssType) {
+      case 'less':
+        cssPanelValue = prettier.format(
+          `${generateScss(schema)} ${animationKeyframes}`,
+          prettierLessOpt
+        );
+        break;
+      case 'scss':
+        cssPanelValue = prettier.format(
+          `${generateScss(schema)} ${animationKeyframes}`,
+          prettierScssOpt
+        );
+        break;
+      default:
+        cssPanelValue = prettier.format(
+          `${generateCSS(style, prefix)} ${animationKeyframes}`,
+          prettierCssOpt
+        )
+
+
+    }
+
+
+
     panelDisplay.push({
       panelName: cssFileName,
-      panelValue: prettier.format(
-        `${generateCSS(style, prefix)} ${animationKeyframes}`,
-        prettierCssOpt
-      ),
-      panelType: 'css',
+      panelValue: cssPanelValue,
+      panelType: dslConfig.cssType || 'css',
       folder: folderName,
     });
   }
+
 
   // 只有一个模块时，生成到当前模块
   if (isExportGlobalFile && schema.css) {

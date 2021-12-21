@@ -234,7 +234,8 @@ export const genStyleCode = (styles, key) => {
     : `${styles}['${key}']`;
 };
 
-export const parseNumberValue = (value, { cssUnit = 'px', scale }) => {
+export const parseNumberValue = (value) => {
+  const { cssUnit = 'px', scale  } = DSL_CONFIG
   value = String(value).replace(/\b[\d\.]+(px|rem|rpx|vw)?\b/, (v) => {
     const nv = parseFloat(v);
     if (!isNaN(nv) && nv !== 0) {
@@ -247,7 +248,7 @@ export const parseNumberValue = (value, { cssUnit = 'px', scale }) => {
     value = parseFloat(value);
     if (cssUnit == 'rpx') {
       value += 'px';
-    } if (cssUnit == 'rem') {
+    } else if (cssUnit == 'rem') {
       const htmlFontSize = DSL_CONFIG.htmlFontSize || 16;
       value = parseFloat((value / htmlFontSize).toFixed(2));
       value = value ? `${value}rem` : value;
@@ -263,8 +264,8 @@ export const parseNumberValue = (value, { cssUnit = 'px', scale }) => {
 };
 
 // convert to responsive unit, such as vw
-export const parseStyle = (style, params) => {
-  const { scale, cssUnit } = params
+export const parseStyle = (style) => {
+  const { scale, cssUnit } = DSL_CONFIG
   const resultStyle = {}
   for (let key in style) {
     switch (key) {
@@ -292,13 +293,13 @@ export const parseStyle = (style, params) => {
       case 'borderRadius':
         resultStyle[key] = parseInt(style[key]) * scale;
         if (style[key]) {
-          resultStyle[key] = parseNumberValue(style[key], params);
+          resultStyle[key] = parseNumberValue(style[key]);
         }
         break;
       default:
         if (style[key] && String(style[key]).includes('px')) {
           resultStyle[key] = String(style[key]).replace(/[\d\.]+px/g, (v) => {
-            return /^[\d\.]+px$/.test(v) ? parseNumberValue(v, params) : v;
+            return /^[\d\.]+px$/.test(v) ? parseNumberValue(v) : v;
           })
         }
         resultStyle[key] = resultStyle[key] || style[key]
@@ -372,13 +373,49 @@ export const generateCSS = (style, prefix) => {
 
   for (let layer in style) {
     css += `${prefix && prefix !== layer ? '.' + prefix + ' ' : ''}.${layer} {`;
-    for (let key in style[layer]) {
-      css += `${parseCamelToLine(key)}: ${style[layer][key]};\n`;
-    }
-    css += '}';
+    css += generateCssString(style[layer])
+    css += '}'
   }
 
   return css;
+};
+
+// genrate css object string
+export const generateCssString = (style)=>{
+  let css = '';
+  for (let key in style) {
+    css += `${parseCamelToLine(key)}: ${style[key]};\n`;
+  }
+  return css
+}
+
+// 根据 schema 生成 scss 或者 less
+export const generateScss = (schema) => {
+  let scss = '';
+
+  function walk(json) {
+    if (json.props.className) {
+      let className = json.props.className;
+      scss += `.${className}{`;
+      scss += `${generateCssString(parseStyle(json.props.style))};`;
+    }
+
+    if (json.children && json.children.length > 0) {
+      json.children.forEach((child) => {
+        if(!['block','component','page'].includes(child.componentName.toLowerCase())){
+          walk(child)
+        }
+      });
+    }
+
+    if (json.props.className) {
+      scss += '}';
+    }
+  }
+
+  walk(schema);
+
+  return scss;
 };
 
 
