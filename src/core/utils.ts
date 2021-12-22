@@ -1,3 +1,4 @@
+import { IImport } from './interface';
 const find = require('lodash/find');
 const unset = require('lodash/unset');
 const camelCase = require('lodash/camelCase');
@@ -235,7 +236,7 @@ export const genStyleCode = (styles, key) => {
 };
 
 export const parseNumberValue = (value) => {
-  const { cssUnit = 'px', scale } = DSL_CONFIG
+  const { cssUnit = 'px', scale, responseWidth } = DSL_CONFIG
   value = String(value).replace(/\b[\d\.]+(px|rem|rpx|vw)?\b/, (v) => {
     const nv = parseFloat(v);
     if (!isNaN(nv) && nv !== 0) {
@@ -247,7 +248,8 @@ export const parseNumberValue = (value) => {
   if (/^\-?[\d\.]+$/.test(value)) {
     value = parseFloat(value);
     if (cssUnit == 'rpx') {
-      value += 'px';
+      value = 750 * value / Number(responseWidth);
+      value = value == 0 ? value : value + 'rpx';
     } else if (cssUnit == 'rem') {
       const htmlFontSize = DSL_CONFIG.htmlFontSize || 16;
       value = parseFloat((value / htmlFontSize).toFixed(2));
@@ -324,7 +326,7 @@ export const parseFunction = (func) => {
 };
 
 // parse layer props(static values or expression)
-export const parseProps = (value, isReactNode?) => {
+export const parseProps = (value, isReactNode = false) => {
   if (typeof value === 'string') {
     if (isExpression(value)) {
       if (isReactNode) {
@@ -426,9 +428,6 @@ export const generateCssString = (style) => {
   for (let key in style) {
     const cssKey = parseCamelToLine(key);
     const orderIndex = orderMap.indexOf(cssKey);
-    if(orderIndex == -1){
-      console.log('before', cssKey, orderIndex)
-    }
     
     array.push({
       key: cssKey,
@@ -439,11 +438,9 @@ export const generateCssString = (style) => {
 
 
   array.sort((a, b) => {
-    console.log(a.key, orderMap.indexOf(a.key), b.key, orderMap.indexOf(b.key))
     return a.index - b.index
   })
 
-  console.log('after', array)
   css = array.map(item => {
     return `${item.key}: ${item.value};`
   }).join('');
@@ -599,11 +596,7 @@ export const existImport = (imports, singleImport) => {
 };
 
 // parse async dataSource
-export const parseDataSource = (data, imports: {
-  _import: string,
-  package: string,
-  version: string,
-}[] = []) => {
+export const parseDataSource = (data, imports: IImport[] = []) => {
   const name = data.id;
   const { uri, method, params } = data.options;
   const action = data.type;

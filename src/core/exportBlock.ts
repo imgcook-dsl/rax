@@ -544,18 +544,14 @@ export default function exportMod(schema, option): IPanelDisplay[] {
           `${generateCSS(style, prefix)} ${animationKeyframes}`,
           prettierCssOpt
         )
-
-
     }
-
-
-
     panelDisplay.push({
       panelName: cssFileName,
       panelValue: cssPanelValue,
       panelType: dslConfig.cssType || 'css',
       folder: folderName,
     });
+    
   }
 
 
