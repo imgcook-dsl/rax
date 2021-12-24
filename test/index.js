@@ -16,7 +16,7 @@ const parserBabel= require('prettier/parser-babel');
 const parserCss =require('prettier/parser-postcss');
 const parserMarkDown=require('prettier/parser-markdown');
 
-
+const entry = require('../dist/entry')
 const browerParser = {
   babel: parserBabel,
   json: parserBabel,
@@ -27,8 +27,6 @@ const browerParser = {
   html: parserHtml,
   md: parserMarkDown
 }
-
-// const entry = require('../src/entry');
 
 const vm = new NodeVM({
   console: 'inherit',
@@ -44,7 +42,7 @@ const runCode = (data, dslConfig) => {
     path.resolve(__dirname, '../src/index.js'),
     'utf8'
   );
-  const files = vm.run(code)(data, {
+  const options =  {
     prettier: {
       format: (str, opt) => {
         if (opt && browerParser[opt.parser]) {
@@ -68,64 +66,38 @@ const runCode = (data, dslConfig) => {
     },
     helper,
     componentsMap,
-  });
+  }
 
-  // const files = entry(data, {
-  //   prettier: {
-  //     format: (str, opt) => {
-  //       return prettier.format(str, opt)
-  //     }
-  //   },
-  //   _: _,
-  //   responsive: {
-  //     width: 750,
-  //     viewportWidth: 375,
-  //   },
-  //   helper,
-  //   componentsMap,
-  // });
+  // const files = vm.run(code)(data,options);
+
+  const files = entry(data, options);
   return files.panelDisplay;
 };
 
 co(function*() {
   const panelDisplay = runCode(data, {
-    inlineStyle: 'inline',
+    componentStyle: "hooks",
+    cssUnit: "px",
+    dsl: "rax",
+    globalCss: true,
+    htmlFontSize: "16",
+    inlineStyle: "module",
+    responseHeight: 1334,
+    responseWidth: 750,
+    useHooks: true,
+    useTypescript: false
   });
 
-  console.log('panelDisplay', panelDisplay)
-  // const renderInfo = vm.run(code)(data, {
-  //   prettier: prettier,
-  //   _: _,
-  //   responsive: {
-  //     width: 750,
-  //     viewportWidth: 375,
-  //   },
-  //   helper,
-  //   componentsMap,
-  // });
-
-  // const renderInfo = entry(data, {
-  //   prettier: {
-  //     format: (str, opt) => {
-  //       return prettier.format(str, opt)
-  //     }
-  //   },
-  //   _: _,
-  //   responsive: {
-  //     width: 750,
-  //     viewportWidth: 375,
-  //   },
-  //   helper,
-  //   componentsMap,
-  // })
+  // console.log('panelDisplay', panelDisplay)
 
   const baseDir = '../demo/src/dist';
 
   if (fs.existsSync(path.join(__dirname, baseDir))) {
     fs.rmdirSync(path.join(__dirname, baseDir), { recursive: true });
+    console.log('删除文件夹')
   }
   mkDirsSync(path.join(__dirname, baseDir));
-
+  console.log('创建文件夹', path.join(__dirname, baseDir))
   // const baseDir = '../code';
   // 生成到目标目录运行
 

@@ -241,7 +241,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
         break;
       case 'div':
       case 'view':
-        collectImports(json.componentName);
+        collectImports('View');
         if (json.children && json.children.length) {
           xml = `<View ${classString} ${props}>${json.children
             .map((node) => {
