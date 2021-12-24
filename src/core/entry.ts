@@ -19,6 +19,7 @@ import exportGlobalCss from './exportGlobalCss';
 
 module.exports = function(schema, option) {
 
+
   // get blocks json
   const blocks: any[] = [];
   const pages: any[] = []
@@ -28,6 +29,8 @@ module.exports = function(schema, option) {
   option.componentsMap = transComponentsMap(option.componentsMap);
   option.blockInPage = schema.componentName === 'Page';
   option.pageGlobalCss = schema.css || '';
+
+  console.log('schema', schema, option)
 
   const dslConfig = Object.assign(
     {

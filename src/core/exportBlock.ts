@@ -226,25 +226,30 @@ export default function exportMod(schema, option): IPanelDisplay[] {
           });
           delete style[className]
         } else if (json.children && json.children.length) {
-          xml = `<div ${classString} ${props}>${json.children
+          xml = `<View ${classString} ${props}>${json.children
             .map((node) => {
               return generateRender(node, true);
             })
-            .join('')}</div>`;
+            .join('')}</View>`;
+
+          collectImports('View');
         } else {
-          xml = `<div ${classString} ${props} />`;
+          xml = `<View ${classString} ${props} />`;
+
+          collectImports('View');
         }
         break;
       case 'div':
       case 'view':
+        collectImports(json.componentName);
         if (json.children && json.children.length) {
-          xml = `<div ${classString} ${props}>${json.children
+          xml = `<View ${classString} ${props}>${json.children
             .map((node) => {
               return generateRender(node, true);
             })
-            .join('')}</div>`;
+            .join('')}</View>`;
         } else {
-          xml = `<div ${classString} ${props} />`;
+          xml = `<View ${classString} ${props} />`;
         }
         break;
       default:
@@ -551,7 +556,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
       panelType: dslConfig.cssType || 'css',
       folder: folderName,
     });
-    
+
   }
 
 
