@@ -200,17 +200,19 @@ export default function exportMod(schema, option): IPanelDisplay[] {
 
     switch (type) {
       case 'text':
+        collectImports('Text');
         let innerText =
           parseProps(json.props.text || json.text, true) || '';
         if (innerText.match(/this\.props/)) {
           innerText = innerText.replace(/this\./, '');
         }
-        xml = `<span ${classString} ${props}>${innerText || ''}</span>`;
+        xml = `<Text ${classString} ${props}>${innerText || ''}</Text>`;
         break;
       case 'image':
+        collectImports('Picture');
         let source = parseProps(json.props.src);
-        source = (source && `src={${source}}`) || '';
-        xml = `<img ${classString} ${props} ${source} />`;
+        source = (source && `src={{source: {uri: ${source}}}}`) || '';
+        xml = `<Picture ${classString} ${props} ${source} />`;
         break;
 
       case 'page':
