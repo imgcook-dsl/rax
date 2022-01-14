@@ -107,6 +107,9 @@ export default function exportMod(schema, option): IPanelDisplay[] {
   }
 
   const collectImports = (componentName) => {
+    if(!componentName){
+      return
+    }
     let componentMap = componentsMap[componentName] || {};
     let packageName =
       componentMap.package || componentMap.packageName || componentName || '';
@@ -119,7 +122,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
     }
 
     const singleImport = `import ${componentName} from '${packageName}'`;
-    if (!existImport(imports, singleImport)) {
+    if (!existImport(imports, singleImport) && packageName) {
       imports.push({
         _import: singleImport,
         package: packageName,
@@ -142,10 +145,18 @@ export default function exportMod(schema, option): IPanelDisplay[] {
    * @returns
    */
   const generateRender = (json, isReplace = false): string => {
+    if(typeof json == 'string'){
+      return json
+    }
+    if(Array.isArray(json)){
+      return (json.map(item=>{
+        return generateRender(item, isReplace)
+      })).join('')
+    }
     const componentName = json.componentName;
     const type = json.componentName.toLowerCase();
     let className = json.props && json.props.className;
-    let classString = json.classString;
+    let classString = json.classString || '';
 
     if (className) {
       style[className] = parseStyle(json.props.style);
@@ -223,9 +234,11 @@ export default function exportMod(schema, option): IPanelDisplay[] {
           xml = `<${compName} />`;
           // 当前是 Page 模块
           const compPath = rootSchema.componentName == 'Page' ? './components' : '..';
-          importMods.push({
-            _import: `import ${compName} from '${compPath}/${compName}';`,
-          });
+          if(compName){
+            importMods.push({
+              _import: `import ${compName} from '${compPath}/${compName}';`,
+            });
+          }
           delete style[className]
         } else if (json.children && json.children.length) {
           xml = `<View ${classString} ${props}>${json.children
@@ -255,24 +268,29 @@ export default function exportMod(schema, option): IPanelDisplay[] {
         }
         break;
       default:
-        collectImports(json.componentName);
-        if (
-          json.children &&
-          json.children.length &&
-          Array.isArray(json.children)
-        ) {
-
-          xml = `<${componentName} ${classString} ${props}>${json.children
-            .map((node) => {
-              return generateRender(node, true);
-            })
-            .join('')}</${componentName}>`;
-
-        } else if (typeof json.children === 'string') {
-          xml = `<${componentName} ${classString} ${props} >${json.children}</${componentName}>`;
-        } else {
-          xml = `<${componentName} ${classString} ${props} />`;
+        if(componentName){
+          collectImports(componentName);
+          if (
+            json.children &&
+            json.children.length &&
+            Array.isArray(json.children)
+          ) {
+  
+            xml = `<${componentName} ${classString} ${props}>${json.children
+              .map((node) => {
+                return generateRender(node, true);
+              })
+              .join('')}</${componentName}>`;
+  
+          } else if (typeof json.children === 'string') {
+            xml = `<${componentName} ${classString} ${props} >${json.children}</${componentName}>`;
+          } else {
+            xml = `<${componentName} ${classString} ${props} />`;
+          }
+        }else{
+          xml = ''
         }
+       
     }
 
 
@@ -429,7 +447,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
 
       if (!json.lifeCycles['_constructor']) {
         lifeCycles.push(
-          `constructor(props, context) { super(); ${states.join('\n')} ${init.join('\n')}}`
+          `constructor(props, context) { super(props); ${states.join('\n')} ${init.join('\n')}}`
         );
       }
 

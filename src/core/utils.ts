@@ -229,7 +229,7 @@ export const genStyleClass = (string, type) => {
   return classArray.join(' ')
 }
 
-export const genStyleCode = (styles, key) => {
+export const genStyleCode = (styles, key='') => {
   return !/-/.test(key) && key.trim()
     ? `${styles}.${key}`
     : `${styles}['${key}']`;
