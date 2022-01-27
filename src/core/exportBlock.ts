@@ -221,8 +221,10 @@ export default function exportMod(schema, option): IPanelDisplay[] {
         break;
       case 'image':
         collectImports('Picture');
-        let source = parseProps(json.props.src);
-        source = (source && `src={{source: {uri: ${source}}}}`) || '';
+        let source = '';
+        if (!json.props.source && json.props.src) {
+          source = `source={{uri: ${parseProps(json.props.src)}}}`;
+        }
         xml = `<Picture ${classString} ${props} ${source} />`;
         break;
 
