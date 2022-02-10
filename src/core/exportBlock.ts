@@ -508,7 +508,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
     // const hasDispatch = hooksView.match('dispatch');
     indexValue = `
       'use strict';
-      import React, { useState, useEffect, memo } from 'rax';
+      import { createElement, useState, useEffect, memo } from 'rax';
       ${imports.map((i) => i._import).join('\n')}
       ${importMods.map((i) => i._import).join('\n')}
   
@@ -522,7 +522,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
     indexValue = `
     'use strict';
 
-    import React, { Component} from 'rax';
+    import { createElement, Component } from 'rax';
     ${imports.map((i) => i._import).join('\n')}
     ${importMods.map((i) => i._import).join('\n')}
     ${importStyles.map((i) => i).join('\n')}
