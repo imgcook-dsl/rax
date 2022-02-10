@@ -344,8 +344,14 @@ export const parseProps = (value, isReactNode = false) => {
   } else if (typeof value === 'function') {
     const { params, content } = parseFunction(value);
     return `(${params}) => {${content}}`;
-  } else if (typeof value === 'object') {
-    return `${JSON.stringify(value)}`;
+  } else if (typeof value === 'object' && value) {
+    if (Array.isArray(value)) {
+      return `[${value.map(v => parseProps(v)).join(', ')}]`
+    }
+    return `{${Object.keys(value).map(key => {
+      return `${/^\w+$/.test(key) ? key :  `'${key}'`}: ${parseProps(value[key])}`
+    }).join(', ')}}`
+    // return `${JSON.stringify(value)}`;
   } else {
     return value;
   }

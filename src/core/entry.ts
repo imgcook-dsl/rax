@@ -30,7 +30,7 @@ module.exports = function(schema, option) {
   option.blockInPage = schema.componentName === 'Page';
   option.pageGlobalCss = schema.css || '';
 
-  console.log('schema', schema, option)
+  // console.log('schema', schema, option)
 
   const dslConfig = Object.assign(
     {
