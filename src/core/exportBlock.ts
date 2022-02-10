@@ -365,7 +365,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
     }
 
     if (statesData) {
-      useState.push(parseState(statesData));
+      useState.push(parseState(statesData, true));
     }
 
     const hooksView = generateRender(json, false);

@@ -514,12 +514,16 @@ export const parseLoop = (loop, loopArg, render, params = {}) => {
 };
 
 // parse state
-export const parseState = (states) => {
+export const parseState = (states, assignProps = false) => {
   let stateName = 'state';
+  let stateStr = toString(JSON.parse(states)) || null;
+  if(assignProps){
+    stateStr = `Object.assign(${stateStr}, props.data)`
+  }
   // hooks state
   return `const [${stateName}, set${toUpperCaseStart(
     stateName
-  )}] = useState(${toString(JSON.parse(states)) || null});`;
+  )}] = useState(${stateStr});`;
 };
 
 // replace state
