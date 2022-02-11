@@ -1,0 +1,33 @@
+{
+  "config": [
+    {
+      "name": "_key1",
+      "title": "自定义单选",
+      "type": "radio",
+      "help": "额外说明",
+      "initValue": "value1",
+      "options": [
+        {
+          "label": "选项1",
+          "value": "value1"
+        },
+        {
+          "label": "选项1",
+          "value": "value2"
+        },
+        {
+          "label": "选项3",
+          "value": "value3"
+        }
+      ]
+    },
+    {
+      "name": "_key2",
+      "title": "自定义输入",
+      "type": "input",
+      "initValue": "",
+      "help": "额外说明",
+      "placeholder": "请输入文本"
+    }
+  ]
+}
