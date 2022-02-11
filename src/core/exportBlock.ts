@@ -131,13 +131,13 @@ export default function exportMod(schema, option): IPanelDisplay[] {
     }
   };
 
-  // let indexBody = generateComponent(schema, option);
+  // 将所有依赖 放在顶部
+  if (schema.imgcook && schema.imgcook.dependencies) {
+    schema.imgcook.dependencies.forEach(item=>{
+      collectImports(item.alias);
+    });
+  }
 
-  // traverse(schema, ()=>{
-
-  // })
-
-  // generate render xml
   /**
    *
    * @param {*} json

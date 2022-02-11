@@ -1,6 +1,6 @@
 import { IPanelDisplay, IDslConfig } from './interface';
 import {
-  line2Hump,
+  genDepComponentsMap,
   transComponentsMap,
   initSchema,
   traverse,
@@ -27,7 +27,12 @@ module.exports = function(schema, option) {
 
   // 参数设置
   option.scale = 750 / ((option.responsive && option.responsive.width) || 750);
-  option.componentsMap = transComponentsMap(option.componentsMap);
+
+  const componentsMap = transComponentsMap(option.componentsMap)
+  if (schema && schema.imgcook && schema.imgcook.dependencies) {
+    genDepComponentsMap(schema.imgcook.dependencies, componentsMap)
+  }
+  option.componentsMap = componentsMap;
   option.blockInPage = schema.componentName === 'Page';
   option.pageGlobalCss = schema.css || '';
 

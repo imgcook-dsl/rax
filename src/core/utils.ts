@@ -736,3 +736,20 @@ export const addAnimation = function (schema) {
   })
   return animationRes;
 };
+
+// 生成依赖map
+export const genDepComponentsMap = (dependencies, componentsMap) => {
+  dependencies.forEach(dep => {
+    if (dep.alias && !componentsMap[dep.alias]) {
+      componentsMap[dep.alias] = {
+        name: dep.alias,
+        exportName: dep.alias,
+        packageName: dep.packageRax1,
+        dependence: {
+          package: dep.packageRax1,
+          export_name: dep.alias
+        }
+      }
+    }
+  })
+}
