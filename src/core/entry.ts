@@ -7,6 +7,7 @@ import {
   genStyleClass,
   getGlobalClassNames,
   genStyleCode,
+  isExpression
 } from './utils';
 import { CSS_TYPE, COMPONENT_TYPE, OUTPUT_TYPE, initConfig } from './consts';
 
@@ -90,6 +91,17 @@ module.exports = function(schema, option) {
     if(!className){
       return
     }
+
+    let fileStyle = {};
+    let codeStyles = {};
+
+    Object.keys(json.props.style || {}).forEach(key => {
+      if (isExpression(json.props.style[key])) {
+        codeStyles[key] = json.props.style[key]
+      } else {
+        fileStyle[key] = json.props.style[key]
+      }
+    });
    
     // inline 
     if(inlineStyle === CSS_TYPE.INLINE_CSS){
@@ -97,6 +109,7 @@ module.exports = function(schema, option) {
       json.props.codeStyle = style;
     }else if(inlineStyle === CSS_TYPE.MODULE_STYLE){
       classString = ` style={${genStyleCode('styles', className)}}`;
+      json.props.codeStyle = {};
     }else{
       let classnames: string[] = []
       let enableGlobalCss = dslConfig.globalCss && schema.css
@@ -124,9 +137,12 @@ module.exports = function(schema, option) {
         classnames.push(className);
         classString = ` className="${classnames.join(' ')}"`;
       }
+
+      json.props.codeStyle = codeStyles;
+      json.props.style = fileStyle;
     }
     
-    json.props.style = style;
+
     json.classString = classString;
   });
 

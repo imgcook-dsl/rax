@@ -170,11 +170,6 @@ export default function exportMod(schema, option): IPanelDisplay[] {
       if (propsValue == '') {
         return
       }
-      if (key === 'codeStyle') {
-        if (json.props[key] && JSON.stringify(json.props[key]) !== '{}') {
-          props += ` style={${propsValue}}`;
-        }
-      }
 
       if (
         ['className', 'style', 'text', 'src', 'key', 'codeStyle'].indexOf(
