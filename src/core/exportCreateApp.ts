@@ -59,12 +59,6 @@ export default function exportCreateApp(schema, option): IPanelDisplay[] {
   // dependencies
   let packDependencies = dependencies;
 
-  // if (schema.imgcook && schema.imgcook.dependencies) {
-  //   schema.imgcook.dependencies.forEach(({packageRax1, versionRax1}) => {
-  //     packDependencies[packageRax1] = versionRax1
-  //   })
-  // }
-
 
   // package.json
   const packageJson = {

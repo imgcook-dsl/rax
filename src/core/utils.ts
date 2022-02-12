@@ -745,6 +745,7 @@ export const genDepComponentsMap = (dependencies, componentsMap) => {
         name: dep.alias,
         exportName: dep.alias,
         packageName: dep.packageRax1,
+        dependenceVersion: dep.versionRax1,
         dependence: {
           package: dep.packageRax1,
           export_name: dep.alias
