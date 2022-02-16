@@ -190,17 +190,17 @@ export default function exportMod(schema, option): IPanelDisplay[] {
         }
       }
 
-      // 无障碍能力
+      // 无障碍能力 点击区域的 所有文字
       if (['onClick'].indexOf(key) === 0 && dslConfig.accessible) {
-        props += ` accessible={true} role="link" aria-label={\`${getText(
+        props += ` accessible={true} role="link" aria-label={${getText(
           json
-        )}\`}`;
+        )}}`;
       }
     });
 
     // 无障碍能力
     if (type === 'link' && !props.match('accessible') && dslConfig.accessible) {
-      props += ` accessible={true} aria-label={\`${getText(json)}\`}`;
+      props += ` accessible={true} aria-label={${getText(json)}}`;
     }
 
 

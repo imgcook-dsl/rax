@@ -691,22 +691,25 @@ export const getText = (schema) => {
   const getChildrenText = (schema) => {
     const type = schema.componentName.toLowerCase();
     if (type === 'text') {
-      text += parseProps(schema.props.text || schema.text, true).replace(
-        /\{/g,
-        '${'
-      );
+      text += parseProps(schema.props.text || schema.text, false);
     }
 
     schema.children &&
       Array.isArray(schema.children) &&
       schema.children.map((item) => {
-        getChildrenText(item);
+        if(item && !item.loop && !item.loopArgs){
+          getChildrenText(item);
+        }
       });
   };
 
   getChildrenText(schema);
 
-  return text;
+  if(text){
+    return '`${' +text +'}`';
+  }
+
+  return '``'
 };
 
 
