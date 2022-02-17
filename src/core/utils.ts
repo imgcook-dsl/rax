@@ -687,11 +687,15 @@ export const parseDataSource = (data, imports: IImport[] = []) => {
 // get children text
 export const getText = (schema) => {
   let text = '';
-
+  let hasExpress = false;
   const getChildrenText = (schema) => {
     const type = schema.componentName.toLowerCase();
     if (type === 'text') {
-      text += parseProps(schema.props.text || schema.text, false);
+      const textValue = schema.props.text || schema.text;
+      if(isExpression(textValue)){
+        hasExpress = true
+      }
+      text += parseProps(textValue, false);
     }
 
     schema.children &&
@@ -706,7 +710,7 @@ export const getText = (schema) => {
   getChildrenText(schema);
 
   if(text){
-    return '`${' +text +'}`';
+    return hasExpress ? '`${' +text +'}`': text;
   }
 
   return '``'
