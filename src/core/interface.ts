@@ -4,11 +4,16 @@ export interface IPanelDisplay {
   panelValue: string;
   panelType: string;
   folder?: string;
-  panelImports?: IImport[]
+  panelDependencies?: IDependence[]
 }
 
 export interface IImport {
   _import: string;
+  package: string;
+  version: string;
+}
+
+export interface IDependence {
   package: string;
   version: string;
 }

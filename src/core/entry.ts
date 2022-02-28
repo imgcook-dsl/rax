@@ -157,8 +157,6 @@ module.exports = function(schema, option) {
   // export module code
   let panelDisplay: IPanelDisplay[] = [];
 
-  const panelImports = []
-
   blocks.length > 0 &&
     blocks.forEach((block) => {
       const result = exportBlock(block, option);
@@ -175,8 +173,8 @@ module.exports = function(schema, option) {
     // 依赖 package.json
     const dependencies = {};
     for(let item of panelDisplay){
-      if(item.panelImports && item.panelImports.length > 0){
-        for( let pack of item.panelImports){
+      if(item.panelDependencies && item.panelDependencies.length > 0){
+        for( let pack of item.panelDependencies){
           dependencies[pack.package] = pack.version || '*'
         }
       }

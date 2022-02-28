@@ -88,7 +88,12 @@ export const isEmptyObj = (o) => {
   return false;
 };
 
-interface IComp { list?: { name: string; packageName: string; dependenceVersion: string; dependence: string }[] };
+interface IComp {
+  list?: {
+    name: string; packageName: string; dependenceVersion: string; dependence: string, exportName: string;
+    subName: string;
+  }[]
+};
 export const transComponentsMap = (compsMap: IComp = {}) => {
   if (!compsMap || !Array.isArray(compsMap.list)) {
     return [];
@@ -97,23 +102,31 @@ export const transComponentsMap = (compsMap: IComp = {}) => {
   return list.reduce((obj, comp) => {
     const componentName = comp.name;
     if (!obj[componentName]) {
-      try {
-        let dependence = JSON.parse(comp.dependence);
-        if (dependence) {
-          comp.packageName = dependence.package;
+      if (comp.dependence) {
+        try {
+          let dependence = typeof comp.dependence === 'string' ? JSON.parse(comp.dependence) : comp.dependence;
+          if (dependence) {
+            comp.packageName = dependence.package;
+          }
+          if (!comp.dependenceVersion) {
+            comp.dependenceVersion = '*';
+          }
+          comp.exportName = dependence.export_name;
+          comp.subName = dependence.sub_name;
+          if (/^\d/.test(comp.dependenceVersion)) {
+            comp.dependenceVersion = '^' + comp.dependenceVersion;
+          }
+        } catch (e) {
+          console.log(e);
         }
-        if (!comp.dependenceVersion) {
-          comp.dependenceVersion = '*';
-        }
-        if (/^\d/.test(comp.dependenceVersion)) {
-          comp.dependenceVersion = '^' + comp.dependenceVersion;
-        }
-      } catch (e) { }
+      }
+
       obj[componentName] = comp;
     }
     return obj;
   }, {});
 };
+
 
 export const toString = (value) => {
   if ({}.toString.call(value) === '[object Function]') {
@@ -606,39 +619,11 @@ export const existImport = (imports, singleImport) => {
 };
 
 // parse async dataSource
-export const parseDataSource = (data, imports: IImport[] = []) => {
+export const parseDataSource = (data) => {
   const name = data.id;
   const { uri, method, params } = data.options;
   const action = data.type;
   let payload = {};
-  let singleImport;
-
-  switch (action) {
-    case 'fetch':
-      singleImport = `import {fetch} from 'whatwg-fetch';`;
-      if (!existImport(imports, singleImport)) {
-        imports.push({
-          _import: singleImport,
-          package: 'whatwg-fetch',
-          version: '^3.0.0',
-        });
-      }
-      payload = {
-        method: method,
-      };
-
-      break;
-    case 'jsonp':
-      // singleImport = `import {fetchJsonp} from 'fetch-jsonp';`;
-      // if (!existImport(imports, singleImport)) {
-      //   imports.push({
-      //     _import: singleImport,
-      //     package: 'fetch-jsonp',
-      //     version: '^1.1.3',
-      //   });
-      // }
-      break;
-  }
 
   Object.keys(data.options).forEach((key) => {
     if (['uri', 'method', 'params'].indexOf(key) === -1) {
@@ -679,8 +664,7 @@ export const parseDataSource = (data, imports: IImport[] = []) => {
   return {
     value: `${name}() ${result}`,
     functionName: name,
-    functionBody: result,
-    imports,
+    functionBody: result
   };
 };
 
@@ -760,4 +744,43 @@ export const genDepComponentsMap = (dependencies, componentsMap) => {
       }
     }
   })
+}
+
+/**
+ * constrcut the import string
+ */
+ export const importString = (importsMap) => {
+  const importStrings: string[] = [];
+  const subImports: string[] = [];
+  for (const [packageName, pkgSet] of importsMap) {
+    const set1 = new Set(), set2 = new Set();
+    for (const pkg of pkgSet) {
+      let exportName = pkg.exportName;
+      let subName = pkg.subName;
+      let componentName = pkg.name;
+
+      if (pkg.subName) {
+        subImports.push(`const ${componentName} = ${exportName}.${subName};`);
+      }
+      if (!exportName) {
+        exportName = componentName
+      }
+      if (componentName !== exportName && !pkg.subName) {
+        exportName = `${exportName} as ${componentName}`;
+      }
+      if (pkg.dependence && pkg.dependence.destructuring) {
+        set2.add(exportName);
+      } else {
+        set1.add(exportName);
+      }
+    }
+    const set1Str = [...set1].join(',');
+    let set2Str = [...set2].join(',');
+    const dot = set1Str && set2Str ? ',' : '';
+    if (set2Str) {
+      set2Str = `{${set2Str}}`;
+    }
+    importStrings.push(`import ${set1Str} ${dot} ${set2Str} from '${packageName}'`);
+  }
+  return importStrings.concat(subImports);
 }

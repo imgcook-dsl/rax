@@ -1,8 +1,8 @@
-import { IPanelDisplay, IImport } from './interface';
+import { IPanelDisplay, IDependence } from './interface';
 import {
   toString,
   existImport,
-  traverse,
+  importString,
   parseLoop,
   parseStyle,
   generateScss,
@@ -60,14 +60,18 @@ export default function exportMod(schema, option): IPanelDisplay[] {
 
   const globalCss = pageGlobalCss + '\n' + (schema.css || '');
 
+
   // imports
-  let imports: IImport[] = [];
+  const dependenceList: IDependence[]  = []
+
 
   // imports mods
   let importMods: { _import: string }[] = [];
 
   // import css
   let importStyles: string[] = [];
+
+  const importsMap = new Map();
 
   // inline style
   const style = {};
@@ -107,28 +111,32 @@ export default function exportMod(schema, option): IPanelDisplay[] {
   }
 
   const collectImports = (componentName) => {
-    if(!componentName){
-      return
-    }
-    let componentMap = componentsMap[componentName] || {};
-    let packageName =
-      componentMap.package || componentMap.packageName || componentName || '';
-    if (
-      packageName &&
-      ['view', 'image', 'text', 'picture', 'link'].indexOf(packageName.toLowerCase()) >=
-      0
-    ) {
-      packageName = `rax-${packageName.toLowerCase()}`;
+    // ignore the empty string
+    if (!componentName) {
+      return;
     }
 
-    const singleImport = `import ${componentName} from '${packageName}'`;
-    if (!existImport(imports, singleImport) && packageName) {
-      imports.push({
-        _import: singleImport,
-        package: packageName,
-        version: componentMap.dependenceVersion || '*',
+    const component = componentsMap[componentName];
+    if(!component){
+      return
+    }
+    const objSets = importsMap.get(component.packageName);
+
+    if (!objSets) {
+      const set = new Set();
+      set.add(component);
+      importsMap.set(component.packageName, set);
+    } else {
+      objSets.add(component);
+    }
+        
+    if(!dependenceList.find(i=>i.package == component.packageName)){
+      dependenceList.push({
+        package: component.packageName,
+        version: component.dependenceVersion || '*',
       });
     }
+
   };
 
   // 将所有依赖 放在顶部
@@ -339,11 +347,10 @@ export default function exportMod(schema, option): IPanelDisplay[] {
         } else if (typeof item.isInit === 'string') {
           init.push(`if (${parseProps(item.isInit)}) { ${item.id}(); }`);
         }
-        const parseDataSourceData = parseDataSource(item, imports);
+        const parseDataSourceData = parseDataSource(item);
         methods.push(
           `const ${parseDataSourceData.functionName} = ()=> ${parseDataSourceData.functionBody}`
         );
-        imports = parseDataSourceData.imports;
       });
 
       if (json.dataSource.dataHandler) {
@@ -421,11 +428,10 @@ export default function exportMod(schema, option): IPanelDisplay[] {
           } else if (typeof item.isInit === 'string') {
             init.push(`if (${parseProps(item.isInit)}) { this.${item.id}(); }`);
           }
-          const parseDataSourceData = parseDataSource(item, imports);
+          const parseDataSourceData = parseDataSource(item);
           methods.push(
             `${parseDataSourceData.functionName}()${parseDataSourceData.functionBody}`
           );
-          imports = parseDataSourceData.imports;
         });
 
         if (json.dataSource.dataHandler) {
@@ -497,6 +503,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
 
   // start parse schema
   transform(schema);
+  const imports: string[] = importString(importsMap);
   let indexValue = '';
   if (dslConfig.useHooks) {
     // const hooksView = generateRender(schema);
@@ -504,7 +511,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
     indexValue = `
       'use strict';
       import { createElement, useState, useEffect, memo } from 'rax';
-      ${imports.map((i) => i._import).join('\n')}
+      ${imports.join('\n')}
       ${importMods.map((i) => i._import).join('\n')}
   
       ${importStyles.map((i) => i).join('\n')}
@@ -518,7 +525,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
     'use strict';
 
     import { createElement, Component } from 'rax';
-    ${imports.map((i) => i._import).join('\n')}
+    ${imports.join('\n')}
     ${importMods.map((i) => i._import).join('\n')}
     ${importStyles.map((i) => i).join('\n')}
 
@@ -540,7 +547,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
       panelValue: prettier.format(indexValue, prettierJsOpt),
       panelType: dslConfig.useTypescript ? 'tsx' : 'jsx',
       folder: folderName,
-      panelImports: imports,
+      panelDependencies: dependenceList,
     },
   ];
 
