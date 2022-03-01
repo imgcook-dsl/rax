@@ -4,7 +4,7 @@ export interface IPanelDisplay {
   panelValue: string;
   panelType: string;
   folder?: string;
-  panelDependencies?: IDependence[]
+  panelImports?: IDependence[]
 }
 
 export interface IImport {

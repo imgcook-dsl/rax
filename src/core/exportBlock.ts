@@ -547,7 +547,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
       panelValue: prettier.format(indexValue, prettierJsOpt),
       panelType: dslConfig.useTypescript ? 'tsx' : 'jsx',
       folder: folderName,
-      panelDependencies: dependenceList,
+      panelImports: dependenceList,
     },
   ];
 

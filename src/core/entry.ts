@@ -173,8 +173,8 @@ module.exports = function(schema, option) {
     // 依赖 package.json
     const dependencies = {};
     for(let item of panelDisplay){
-      if(item.panelDependencies && item.panelDependencies.length > 0){
-        for( let pack of item.panelDependencies){
+      if(item.panelImports && item.panelImports.length > 0){
+        for( let pack of item.panelImports){
           dependencies[pack.package] = pack.version || '*'
         }
       }
