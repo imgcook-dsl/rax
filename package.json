@@ -1,5 +1,5 @@
 {
-  "name": "@imgcook/dsl-template",
+  "name": "@imgcook/rax",
   "version": "0.0.1",
   "devDependencies": {
     "@babel/preset-env": "^7.7.7",
