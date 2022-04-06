@@ -175,7 +175,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
 
     Object.keys(json.props).forEach((key) => {
       const propsValue = parseProps(json.props[key]);
-      if (propsValue == '') {
+      if (propsValue === '') {
         return
       }
 
@@ -238,7 +238,7 @@ export default function exportMod(schema, option): IPanelDisplay[] {
           const compName = json.fileName;
           xml = `<${compName} />`;
           // 当前是 Page 模块
-          const compPath = rootSchema.componentName == 'Page' ? './components' : '..';
+          const compPath = rootSchema.componentName === 'Page' ? './components' : '..';
           if(compName){
             importMods.push({
               _import: `import ${compName} from '${compPath}/${compName}';`,
@@ -513,7 +513,6 @@ export default function exportMod(schema, option): IPanelDisplay[] {
       import { createElement, useState, useEffect, memo } from 'rax';
       ${imports.join('\n')}
       ${importMods.map((i) => i._import).join('\n')}
-  
       ${importStyles.map((i) => i).join('\n')}
       ${utils.join('\n')}
 
