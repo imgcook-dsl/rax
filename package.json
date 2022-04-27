@@ -1,6 +1,10 @@
 {
   "name": "@imgcook/rax",
   "version": "0.0.1",
+  "main": "./src/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "devDependencies": {
     "@babel/preset-env": "^7.7.7",
     "@babel/preset-stage-0": "^7.0.0",
