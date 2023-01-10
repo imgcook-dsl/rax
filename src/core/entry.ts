@@ -17,6 +17,7 @@ import exportBlock from './exportBlock';
 // const exportPage from './exportPage';
 import exportCreateApp from './exportCreateApp';
 import exportGlobalCss from './exportGlobalCss';
+import defaultComponentsMap from './defaultComponentsMap';
 
 module.exports = function(schema, option) {
 
@@ -27,7 +28,8 @@ module.exports = function(schema, option) {
   // 参数设置
   option.scale = 750 / ((option.responsive && option.responsive.width) || 750);
 
-  const componentsMap = transComponentsMap(option.componentsMap)
+  const componentsMap = Object.keys(option.componentsMap).length == 0 ? transComponentsMap(defaultComponentsMap as any) : transComponentsMap(option.componentsMap || {})
+
   if (schema && schema.imgcook && schema.imgcook.dependencies) {
     genDepComponentsMap(schema.imgcook.dependencies, componentsMap)
   }
