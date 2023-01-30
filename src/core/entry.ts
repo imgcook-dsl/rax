@@ -43,7 +43,7 @@ module.exports = function(schema, option) {
     {
       scale: option.scale,
       globalCss: true,
-      cssUnit: 'px',
+      cssUnit: 'rpx',
       inlineStyle: CSS_TYPE.MODULE_CLASS,
       componentStyle: COMPONENT_TYPE.HOOKS,
       htmlFontSize: 16
