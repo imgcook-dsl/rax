@@ -60,7 +60,7 @@ export let DSL_CONFIG: IDslConfig = {
   scale: 1,
   cssType: 'css',
   globalCss: true,
-  cssUnit: 'px',
+  cssUnit: 'rpx',
   componentStyle: 'hooks',
   inlineStyle: 'module',
   outputStyle: 'component',
