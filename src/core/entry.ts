@@ -19,7 +19,7 @@ import exportCreateApp from './exportCreateApp';
 import exportGlobalCss from './exportGlobalCss';
 import defaultComponentsMap from './defaultComponentsMap';
 
-module.exports = function(schema, option) {
+module.exports = function (schema, option) {
 
   // get blocks json
   const blocks: any[] = [];
@@ -27,7 +27,7 @@ module.exports = function(schema, option) {
 
   // 参数设置
   option.scale = 750 / ((option.responsive && option.responsive.width) || 750);
-
+  option.componentsMap = option.componentsMap || {};
   const componentsMap = Object.keys(option.componentsMap).length == 0 ? transComponentsMap(defaultComponentsMap as any) : transComponentsMap(option.componentsMap || {})
 
   if (schema && schema.imgcook && schema.imgcook.dependencies) {
@@ -51,7 +51,7 @@ module.exports = function(schema, option) {
     option._.get(schema, 'imgcook.dslConfig')
   );
 
-  dslConfig.useHooks = dslConfig.componentStyle ===  COMPONENT_TYPE.HOOKS;
+  dslConfig.useHooks = dslConfig.componentStyle === COMPONENT_TYPE.HOOKS;
   dslConfig.useTypescript = dslConfig.jsx === 'typescript'
   option.dslConfig = dslConfig;
 
@@ -94,7 +94,7 @@ module.exports = function(schema, option) {
     let className = json.props && json.props.className || '';
     let classString = '';
     let style = json.props.style;
-    if(!className){
+    if (!className) {
       return
     }
 
@@ -108,38 +108,38 @@ module.exports = function(schema, option) {
         fileStyle[key] = json.props.style[key]
       }
     });
-   
+
     // inline 
-    if(inlineStyle === CSS_TYPE.INLINE_CSS){
+    if (inlineStyle === CSS_TYPE.INLINE_CSS) {
       classString = `className="${className}"`;
       json.props.codeStyle = style;
-    }else if(inlineStyle === CSS_TYPE.MODULE_STYLE){
+    } else if (inlineStyle === CSS_TYPE.MODULE_STYLE) {
       classString = ` style={${genStyleCode('styles', className)}}`;
       json.props.codeStyle = {};
-    }else{
+    } else {
       let classnames: string[] = []
       let enableGlobalCss = dslConfig.globalCss && schema.css
-   
+
       // 计算全局样式类名
       if (enableGlobalCss) {
         const cssResults = getGlobalClassNames(style, schema.css);
         if (cssResults.names.length > 0) {
           classnames = cssResults.names
-        } 
+        }
         style = cssResults.style;
-      } 
-      
-      if(inlineStyle == CSS_TYPE.MODULE_CLASS){
+      }
+
+      if (inlineStyle == CSS_TYPE.MODULE_CLASS) {
         // classnames.push(genStyleCode('styles', className));
-     
-        if(classnames.length){
-          const nameStr =`${classnames.join(' ')} \$\{ ${ genStyleCode('styles', className) }\}`;
+
+        if (classnames.length) {
+          const nameStr = `${classnames.join(' ')} \$\{ ${genStyleCode('styles', className)}\}`;
           classString = ` className={\`${nameStr.trim()}\`}`;
-        }else{
-          classString = ` className={${ genStyleCode('styles', className).trim()}}`;
+        } else {
+          classString = ` className={${genStyleCode('styles', className).trim()}}`;
         }
 
-      }else{
+      } else {
         classnames.push(className);
         classString = ` className="${classnames.join(' ')}"`;
       }
@@ -147,7 +147,7 @@ module.exports = function(schema, option) {
       json.props.codeStyle = codeStyles;
       json.props.style = fileStyle;
     }
-    
+
 
     json.classString = classString;
   });
@@ -170,23 +170,23 @@ module.exports = function(schema, option) {
   }
 
 
-  if(dslConfig.outputStyle == OUTPUT_TYPE.PROJECT){
+  if (dslConfig.outputStyle == OUTPUT_TYPE.PROJECT) {
     // 依赖 package.json
     const dependencies = {};
-    for(let item of panelDisplay){
-      if(item.panelImports && item.panelImports.length > 0){
-        for( let pack of item.panelImports){
+    for (let item of panelDisplay) {
+      if (item.panelImports && item.panelImports.length > 0) {
+        for (let pack of item.panelImports) {
           dependencies[pack.package] = pack.version || '*'
         }
       }
     }
 
     // 项目文件
-    panelDisplay = panelDisplay.concat(exportCreateApp(schema, {...option, dependencies}));
+    panelDisplay = panelDisplay.concat(exportCreateApp(schema, { ...option, dependencies }));
   }
 
 
-    
+
   // 全局样式
   panelDisplay = panelDisplay.concat(exportGlobalCss(schema, option));
 
@@ -203,7 +203,7 @@ module.exports.CONFIG_FORM = [
   { name: 'componentStyle', title: '组件风格', type: 'radio', initValue: 'hooks', options: [{ label: 'Hooks', value: 'hooks' }, { label: 'Class Component', value: 'component' }] },
   { name: 'globalCss', title: '提取全局样式', help: '', type: 'switch', initValue: false, },
   { name: 'cssUnit', title: '单位', type: 'radio', initValue: 'px', options: ['px', 'rem', 'vw', 'rpx'] },
-  { name: 'cssType', title: '类型', type: 'radio', initValue: 'css', options: [ 'css', 'scss', 'less'] },
+  { name: 'cssType', title: '类型', type: 'radio', initValue: 'css', options: ['css', 'scss', 'less'] },
   { name: 'inlineStyle', title: '样式引入方式', type: 'radio', initValue: 'module', options: [{ label: 'CSS Module', value: 'module' }, { label: 'Import', value: 'import' }, { label: 'Inline CSS', value: 'module_style' }, { label: 'Inline', value: 'inline' }] },
   { name: 'cssStyle', title: '样式名', type: 'radio', initValue: 'camelCase', options: [{ label: '驼峰式', value: 'camelCase' }, { label: '中划线', value: 'kebabCase' }, { label: '下划线', value: 'snakeCase' }] },
   { name: 'outputStyle', title: '导出格式', type: 'radio', initValue: 'component', options: [{ label: '仅组件', value: 'component' }, { label: '完整项目', value: 'project' }] },
